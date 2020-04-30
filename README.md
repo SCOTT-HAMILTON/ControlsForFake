@@ -22,7 +22,7 @@ Here are a few screenshots of the app.
   - ```$ make```
 
 # Usage
-Just launch it and use it. I should be statically linked to libFake and shoudln't have any other dependencies than Qt
+Just launch it and use it. It should be statically linked to libFake and shoudln't have any other dependencies than Qt
 
 License
 ----
