@@ -23,6 +23,7 @@ Here are a few screenshots of the app.
 
 # Usage
 Just launch it and use it. I should be statically linked to libFake and shoudln't have any other dependencies than Qt
+
 License
 ----
 Like Fake, Control's for Fake is delivered as it is under the well known MIT License.
