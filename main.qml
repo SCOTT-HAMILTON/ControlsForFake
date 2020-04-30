@@ -44,6 +44,7 @@ Window {
     }
 
     property var setSinkChecked: function(name, checked) {
+        console.log("Sink changed : ",name,", ",checked)
         let sinkIndex = sinks.indexOf(name)
         if (checked && sinkIndex === -1){
             sinks.push(name)
@@ -186,14 +187,24 @@ Window {
 
         model:  ListModel {
             id: sourceOutputsModel
-            ListElement { name: ""; index: -1 }
+            ListElement { name: ""; index: -1; isChecked: false }
         }
         signal binaryNameCheckedChange(name: string, checked: var)
         delegate: CheckBox {
             text: name
+            checked: isChecked
+
             onCheckedChanged: {
                 if (checked) {
                     sourceOutputProcessBinaryNameComboBox.displayText = name
+                    for (let i = 0; i < sourceOutputsModel.count; ++i) {
+                        if (sourceOutputsModel.get(i).index === index) {
+                            sourceOutputsModel.set(i, { "name":name,
+                                                        "index":index,
+                                                        "isChecked": true})
+                            break
+                        }
+                    }
                 }
 
                 sourceOutputProcessBinaryNameComboBox.binaryNameCheckedChange(name, checked)
@@ -213,7 +224,10 @@ Window {
             sourceOutputsModel.clear()
             for (let i = 0; i < sourceOutputsCount; ++i) {
                 let sourceOutput = fakelibQmlInterface.sourceOutputAt(i)
-                sourceOutputsModel.append({"name": sourceOutput.sourceProcessBinaryName, "index": sourceOutput.index})
+                let isChecked = root.sourceOutputs.indexOf(sourceOutput.sourceProcessBinaryName)!==-1
+                sourceOutputsModel.append({ "name": sourceOutput.sourceProcessBinaryName,
+                                            "index": sourceOutput.index,
+                                            "isChecked": isChecked})
             }
             currentIndex = 0
         }
@@ -235,14 +249,24 @@ Window {
 
         model:  ListModel {
             id: sinksModel
-            ListElement { description: "Default"; name: ""; index: -1 }
+            ListElement { description: "Default"; name: ""; index: -1; isChecked: false}
         }
         signal sinkCheckedChange(name: string, checked: var)
         delegate: CheckBox {
             text: description
+            checked: isChecked
             onCheckedChanged: {
                 if (checked) {
                     sinksComboBox.displayText = description
+                    for (let i = 0; i < sinksModel.count; ++i) {
+                        if (sinksModel.get(i).index === index) {
+                            sinksModel.set(i, { "description": description,
+                                                "name":name,
+                                                "index":index,
+                                                "isChecked": true})
+                            break
+                        }
+                    }
                 }
 
                 sinksComboBox.sinkCheckedChange(name, checked)
@@ -265,9 +289,11 @@ Window {
             for (let i = 0; i < sinksCount; ++i) {
                 let sink = fakelibQmlInterface.sinkAt(i)
                 if (i === 0) first = sink.description
-                console.log("desc : "+sink.description)
-                console.log("name : "+sink.name)
-                sinksModel.append({"description":sink.description, "name":sink.name,"index": sink.index})
+                let isChecked = root.sinks.indexOf(sink.name)!==-1
+                sinksModel.append({ "description":sink.description,
+                                    "name":sink.name,
+                                    "index": sink.index,
+                                    "isChecked": isChecked})
             }
             currentIndex = 0
         }
@@ -332,6 +358,10 @@ Window {
         to: 250
         easing.type:  Easing.OutCubic
         duration: 1000
+        onStarted: {
+            root.maximumHeight = to
+        }
+
         onFinished: {
             commandLineText.y = root.height*0.93-commandLineText.height
             commandLineText.visible = true

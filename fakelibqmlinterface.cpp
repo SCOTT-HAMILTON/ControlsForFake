@@ -24,11 +24,11 @@ void FakeLibQmlInterface::updateSinksList()
         if (!sinks[ctr].initialized) {
                 break;
         }
-        qDebug() << "=======[ Sink #" << ctr + 1 << " ]=======";
-        qDebug() << "Description: " << sinks[ctr].description;
-        qDebug() << "Name: " << sinks[ctr].name;
-        qDebug() << "Index: " << sinks[ctr].index;
-        qDebug();
+//        qDebug() << "=======[ Sink #" << ctr + 1 << " ]=======";
+//        qDebug() << "Description: " << sinks[ctr].description;
+//        qDebug() << "Name: " << sinks[ctr].name;
+//        qDebug() << "Index: " << sinks[ctr].index;
+//        qDebug();
         QString name(sinks[ctr].name);
 
         if (name == "TestSink" || name == "TestCombinedSink")
@@ -39,7 +39,6 @@ void FakeLibQmlInterface::updateSinksList()
         m_sinks[sinks_count]->m_index = sinks[ctr].index;
         ++sinks_count;
     }
-    qDebug() << "sinks count : " << sinks_count;
 }
 
 void FakeLibQmlInterface::updateSourceOuputsList()
@@ -54,12 +53,12 @@ void FakeLibQmlInterface::updateSourceOuputsList()
         if (!source_outputs[ctr].initialized) {
                 break;
         }
-        qDebug() << "=======[ Source Output #" << ctr + 1 << " ]=======";
-        qDebug() << "Name: " << source_outputs[ctr].name;
-        qDebug() << "Source: " << source_outputs[ctr].source;
-        qDebug() << "Source Process Binary Name : " << source_outputs[ctr].source_process_binary;
-        qDebug() << "Index: " << source_outputs[ctr].index;
-        qDebug();
+//        qDebug() << "=======[ Source Output #" << ctr + 1 << " ]=======";
+//        qDebug() << "Name: " << source_outputs[ctr].name;
+//        qDebug() << "Source: " << source_outputs[ctr].source;
+//        qDebug() << "Source Process Binary Name : " << source_outputs[ctr].source_process_binary;
+//        qDebug() << "Index: " << source_outputs[ctr].index;
+//        qDebug();
 
         if (strcmp("pavucontrol", source_outputs[ctr].source_process_binary) == 0)
             continue;
@@ -70,7 +69,6 @@ void FakeLibQmlInterface::updateSourceOuputsList()
         m_sourceOutputs[source_outputs_count]->m_index = source_outputs[ctr].index;
         ++source_outputs_count;
     }
-    qDebug() << "source outputs count : " << source_outputs_count;
 }
 
 SourceOutput *FakeLibQmlInterface::sourceOutputAt(int index)
