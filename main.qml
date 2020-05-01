@@ -33,10 +33,7 @@ Window {
 
     function generateCommandLine() {
         let command = "./FakeMicWavPlayer "+wavFileText.text
-        if (sinks.length>0)
-            command += ' '+generateSinksCommandLine()
-        else
-            command += " default"
+        command += ' '+generateSinksCommandLine()
         if (sourceOutputProcessBinaryNameComboBox.currentText !== "Default")
             command += ' '+sourceOutputProcessBinaryNameComboBox.currentText
         console.log(command)
@@ -383,7 +380,7 @@ Window {
             fakelibQmlInterface.fakePlay(wavFileText.text,
                                          generateSinksCommandLine(),
                                          (sourceOutputProcessBinaryNameComboBox.currentText!==""?
-                                            sourceOutputProcessBinaryNameComboBox.currentText:"default"
+                                            sourceOutputProcessBinaryNameComboBox.currentText:""
                                             ))
         }
         Component.onCompleted: {
