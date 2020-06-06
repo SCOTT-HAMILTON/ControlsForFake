@@ -31,9 +31,10 @@ Here are a few screenshots of the app.
 
 	
 
-### Requirements
-
-Fake requires libpulse, qt5 and qtquick2: 
+# Requirements
+ - FakeLib (provided by [https://github.com/SCOTT-HAMILTON/FakeMicWavPlayer](http://))
+ - Qt 5.14 (The QML code could be adapted to support all Qt 5 )
+ - QtQuick2
 
 ### Help
 
