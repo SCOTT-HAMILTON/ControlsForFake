@@ -36,9 +36,6 @@ Here are a few screenshots of the app.
  - Qt 5.14 (The QML code could be adapted to support all Qt 5 )
  - QtQuick2
 
-### Help
-
-
 License
 ----
 Fake is delivered as it is under the well known MIT License
