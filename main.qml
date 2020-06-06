@@ -1,10 +1,10 @@
-import QtGraphicalEffects 1.14
-import QtQuick 2.14
-import QtQuick.Window 2.14
-import QtQuick.Controls 2.13
-import QtQuick.Controls.Material 2.13
-import QtQuick.Controls.Styles 1.4
-import Qt.labs.platform 1.1
+import QtGraphicalEffects 1
+import QtQuick 2.12
+import QtQuick.Window 2
+import QtQuick.Controls 2
+import QtQuick.Controls.Material 2
+import QtQuick.Controls.Styles 1
+import Qt.labs.platform 1
 
 import org.controlfake.sink 1.0
 
@@ -186,7 +186,7 @@ Window {
             id: sourceOutputsModel
             ListElement { name: ""; index: -1; isChecked: false }
         }
-        signal binaryNameCheckedChange(name: string, checked: var)
+        signal binaryNameCheckedChange(var name, var checked)
         delegate: CheckBox {
             text: name
             checked: isChecked
@@ -248,7 +248,7 @@ Window {
             id: sinksModel
             ListElement { description: "Default"; name: ""; index: -1; isChecked: false}
         }
-        signal sinkCheckedChange(name: string, checked: var)
+        signal sinkCheckedChange(var name, var checked)
         delegate: CheckBox {
             text: description
             checked: isChecked

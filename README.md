@@ -1,5 +1,22 @@
-# ControlsForFake
-The Qt gui frontend for FakeMicWavPlayer.
+# Controls for Fake Microphone Wav Player
+
+![powered by Pulseaudio](https://www.freedesktop.org/software/pulseaudio/logo.png)
+
+![Powered by Pulseaudio](icons/powered_by_pulseaudio.png)
+
+
+![Build Passing](icons/buld-passing.svg)
+
+This is the Gui frontend for the [https://github.com/SCOTT-HAMILTON/FakeMicWavPlayer](Fake Microphone Wav Player)
+
+
+# Meson Building 
+  To build it, run : 
+  ```sh
+  meson setup build
+  ninja -C build
+  ninja -C install
+  ```
 
 ## Screenshots
 Here are a few screenshots of the app.
@@ -12,23 +29,23 @@ Here are a few screenshots of the app.
  
 ![App screen shot, all fields entered](screens/app-fields-entered.jpg)
 
-# Requirements
- - FakeLib (provided by [https://github.com/SCOTT-HAMILTON/FakeMicWavPlayer](http://))
- - Qt 5.14 (The QML code could be adapted to support all Qt 5 )
- - QtQuick2
- 
-# Building 
-  - ```$ qmake .```
-  - ```$ make```
+	
 
-# Usage
-Just launch it and use it. It should be statically linked to libFake and shoudln't have any other dependencies than Qt
+### Requirements
+
+Fake requires libpulse, qt5 and qtquick2: 
+
+### Help
+
 
 License
 ----
-Like Fake, Control's for Fake is delivered as it is under the well known MIT License.
+Fake is delivered as it is under the well known MIT License
 
 # Todo - work in progress
 
- * Translations (french only, I don't speak that much languages, any help is welcomed)
- * Better integration for building : there is still quite a lot of horror in the .pro file
+ * Translations (french only, I don't speak that much languages, help is welcomed)
+
+
+[//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
+   [meson manual]: <https://mesonbuild.com/Manual.html>

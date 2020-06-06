@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
     qmlRegisterType<SourceOutput>("org.controlfake.sourceOutput", 1, 0, "SourceOutput");
 
     FakeLibQmlInterface fakelibQmlInterface;
-//    fakelibQmlInterface.sinksList();
     engine.rootContext()->setContextProperty("fakelibQmlInterface", &fakelibQmlInterface);
 
 
