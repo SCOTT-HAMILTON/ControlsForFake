@@ -1,1 +1,0 @@
-option('qt5_include_dir', type : 'string', value : '', description : 'The qt5 include dir')

@@ -1,19 +1,25 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QTranslator>
 
 #include "fakelibqmlinterface.h"
 
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     qputenv("QT_QUICK_CONTROLS_STYLE", "material");
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
+
+
+    QTranslator translator;
+    // look up ://translations/Lightning-en_US.qm
+    QLocale locale;//(QLocale::English, QLocale::UnitedStates);
+    if (translator.load("://translations/ControlsForFake_"+locale.name()+".qm"))
+        app.installTranslator(&translator);
 
     QQmlApplicationEngine engine;
-
-
     qmlRegisterType<Sink>("org.controlfake.sink", 1, 0, "Sink");
     qmlRegisterType<SourceOutput>("org.controlfake.sourceOutput", 1, 0, "SourceOutput");
 
