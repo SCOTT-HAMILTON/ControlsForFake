@@ -44,7 +44,7 @@ Fake is delivered as it is under the well known MIT License
 
  * Translations (french only, I don't speak that much languages, help is welcomed)
  * Meson qt5 module is obscure, I didn't find anyway of telling meson to compile the 
- translation files before preprocessing the ressource files. This is way I keep those
+ translation files before preprocessing the ressource files. This is why I keep those
  ugly precompiled qm files 🤮. If you know how to fix this, please tell me.
 
 
