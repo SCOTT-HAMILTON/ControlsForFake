@@ -32,3 +32,21 @@ executable('ControlsForFake',
 	    install: true,
             include_directories: inc,
             dependencies : [ qt5_dep, libpulse_simple, lib_fake_dep ])
+
+
+install_data('icons/16x16-app-icon.png',
+	      install_dir: 'share/icons/hicolor/16x16/apps',
+	      rename: 'controlsforfake.png')
+install_data('icons/22x22-app-icon.png',
+	      install_dir: 'share/icons/hicolor/22x22/apps',
+	      rename: 'controlsforfake.png')
+install_data('icons/32x32-app-icon.png',
+	      install_dir: 'share/icons/hicolor/32x32/apps',
+	      rename: 'controlsforfake.png')
+install_data('icons/app-icon.svgz',
+	      install_dir: 'share/icons/hicolor/scalable/apps',
+	      rename: 'controlsforfake.svgz')
+
+install_data('controls-for-fake.desktop',
+	      install_dir: 'share/applications',
+	      install_mode: 'r-xr-xr-x')
