@@ -14,9 +14,4 @@ Terminal=false
 StartupNotify=false
 Actions=LaunchStart;
 X-DBUS-StartupType=Multi
-
-[Desktop Action LaunchStart]
-Name=Launch Controls for Fake
-Name[fr]=Lance les manettes pour Fake
-Exec=@Prefix@/bin/ControlsForFake
 X-KDE-Shortcuts=Meta+Ctrl+Alt+Shift+C
