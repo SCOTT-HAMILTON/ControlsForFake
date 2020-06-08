@@ -43,6 +43,9 @@ install_data('icons/22-app-icon.png',
 install_data('icons/32-app-icon.png',
 	      install_dir: 'share/icons/hicolor/32x32/apps',
 	      rename: 'controlsforfake.png')
+install_data('icons/48-app-icon.png',
+	      install_dir: 'share/icons/hicolor/48x48/apps',
+	      rename: 'controlsforfake.png')
 install_data('icons/app-icon.svgz',
 	      install_dir: 'share/icons/hicolor/scalable/apps',
 	      rename: 'controlsforfake.svgz')
