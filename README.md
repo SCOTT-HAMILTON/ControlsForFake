@@ -38,7 +38,7 @@ Here are a few screenshots of the app.
 
 License
 ----
-Fake is delivered as it is under the well known MIT License
+ControlsForFake is delivered as it is under the well known MIT License
 
 # Todo - work in progress
 
