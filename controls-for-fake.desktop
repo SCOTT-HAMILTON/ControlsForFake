@@ -12,6 +12,5 @@ Icon=controlsforfake
 Type=Application
 Terminal=false
 StartupNotify=false
-Actions=LaunchStart;
 X-DBUS-StartupType=Multi
 X-KDE-Shortcuts=Meta+Ctrl+Alt+Shift+C
