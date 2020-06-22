@@ -4,34 +4,49 @@
 #include "sink.h"
 #include "sourceoutput.h"
 
-extern "C" {
 #include <FakeLib.h>
-}
+#include <FakeMicWavPlayerLib.h>
 
 #include <QObject>
 #include <QQmlListProperty>
 #include <QThread>
+#include <QDebug>
 
 #include <array>
 
 class FakePlayerThread : public QThread
-{
-    Q_OBJECT
-public:
+{ Q_OBJECT public:
     explicit FakePlayerThread(QObject* parent = nullptr) :
         QThread(parent), canRun(true)
     {
     }
-    QString wavFilePath;
+    QString oggFilePath;
     QString sinks;
     QString processBinaryName;
+	bool error;
 
 protected:
     void run() override {
-        FakeAndPlayWav(wavFilePath.toStdString().c_str(),
-                       sinks.toStdString().c_str(),
-                       processBinaryName.toStdString().c_str());
-        emit processFinished();
+		error = false;
+		if (FakeMicWavPlayer::init(oggFilePath.toStdString().c_str(),
+				   sinks.toStdString().c_str(),
+				   processBinaryName.toStdString().c_str()) != 0) {
+			error = true;
+			emit processFinished();
+			return;
+		}
+		if (FakeMicWavPlayer::set_volume(90.0) != 0) {
+			error = true;
+			emit processFinished();
+			return;
+		}
+		canRun = true;
+		while (canRun && FakeMicWavPlayer::playNonBlocking() == 0) {
+		}
+		FakeMicWavPlayer::cleanPlayer();
+		FakeMicWavPlayer::clean();
+
+		emit processFinished();
     }
 
 public slots:
@@ -53,27 +68,26 @@ class FakeLibQmlInterface : public QObject
     Q_OBJECT
 public:
     explicit FakeLibQmlInterface(QObject *parent = nullptr);
+	~FakeLibQmlInterface();
 
-    Q_INVOKABLE void updateSinksList();
+    Q_INVOKABLE bool updateSinksList();
     Q_INVOKABLE Sink* sinkAt(int index);
     Q_INVOKABLE int sinkCount() const;
 
 
-    Q_INVOKABLE void updateSourceOuputsList();
+    Q_INVOKABLE bool updateSourceOuputsList();
     Q_INVOKABLE SourceOutput* sourceOutputAt(int index);
     Q_INVOKABLE int sourceOutputsCount() const;
 
-    Q_INVOKABLE void fakePlay(const QString& wavFilePath,
+    Q_INVOKABLE void playOggToApp(const QString& oggFilePath,
                               const QString& sinks,
                               const QString& processBinaryName);
 
 signals:
 
 private:
-    std::array<Sink*, 16> m_sinks;
-    std::array<SourceOutput*, 16> m_sourceOutputs;
-    int sinks_count;
-    int source_outputs_count;
+    std::vector<Sink*> m_sinks;
+    std::vector<SourceOutput*> m_sourceOutputs;
 
     FakePlayerThread* fakePlayerThread;
 

@@ -12,19 +12,19 @@ class SourceOutput : public QObject
     Q_PROPERTY(int index READ index)
 public:
     explicit SourceOutput(const QString& name = "",
-                          const QString& source = "",
+                          int source = -1,
                           const QString& sourceProcessBinaryName = "",
                           int index = -1,
                           QObject *parent = nullptr);
 
     QString name() const;
-    QString source() const;
+    int source() const;
     QString sourceProcessBinaryName() const;
     int index() const;
 
     QString m_name;
-    QString m_source;
     QString m_sourceProcessBinaryName;
+    int m_source;
     int m_index;
 
 };

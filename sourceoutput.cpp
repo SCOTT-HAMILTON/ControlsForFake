@@ -1,7 +1,7 @@
 #include "sourceoutput.h"
 
 SourceOutput::SourceOutput(const QString &name,
-                           const QString &source,
+                           int source,
                            const QString &sourceProcessBinaryName,
                            int index,
                            QObject *parent) :
@@ -15,7 +15,7 @@ QString SourceOutput::name() const
     return m_name;
 }
 
-QString SourceOutput::source() const
+int SourceOutput::source() const
 {
     return m_source;
 }

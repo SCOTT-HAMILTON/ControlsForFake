@@ -1,74 +1,89 @@
 #include "fakelibqmlinterface.h"
-
+#include "FakeLibUtils.hpp"
 
 #include <QDebug>
+#include <iterator>
 
 FakeLibQmlInterface::FakeLibQmlInterface(QObject *parent) :
-    QObject(parent), sinks_count(0), fakePlayerThread(nullptr)
+    QObject(parent), fakePlayerThread(nullptr)
 {
-    for (std::size_t i = 0; i < m_sinks.size(); ++i)
-        m_sinks[i] = new Sink;
-    for (std::size_t i = 0; i < m_sinks.size(); ++i)
-        m_sourceOutputs[i] = new SourceOutput;
+}
+FakeLibQmlInterface::~FakeLibQmlInterface()
+{
+	if (fakePlayerThread != nullptr) {
+		qDebug() << "Stoping...";
+		fakePlayerThread->stop();
+		qDebug() << "Waiting...";
+		fakePlayerThread->wait();
+		qDebug() << "Cleaning...";
+	}
+	FakeMicWavPlayer::clean();
+	qDebug() << "Done";
 }
 
-void FakeLibQmlInterface::updateSinksList()
+bool FakeLibQmlInterface::updateSinksList()
 {
-    sink_infos_t sinks[16];
-    if (get_sources_source_output_sinks_and_modules(NULL, NULL, sinks, NULL) < 0) {
-        qDebug() << "Error, Failed to fetch sinks.";
-        return;
-    }
-    sinks_count = 0;
-    for (int ctr = 0; ctr < 16; ++ctr) {
-        if (!sinks[ctr].initialized) {
+	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
+	auto result = fakeLib
+		.clear_commands()
+		.get_sink_list()
+		.run_commands();
+	info_list<sink_infos_t> sink_list;
+	try {
+		sink_list = FakeLibUtils::extract<info_list<sink_infos_t>>(result);
+	} catch (ObjectNotFoundError&) {
+		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch sink list, cancelling";
+		return false;
+	}
+	qDeleteAll(std::begin(m_sinks), std::end(m_sinks));
+	m_sinks.clear();
+    for (int ctr = 0; ctr < info_list_size; ++ctr) {
+		// We assume that as soon as we hit initialized sinks, we've reached the 
+		// end of the initialized sinks
+        if (!sink_list[ctr].initialized) {
                 break;
         }
-//        qDebug() << "=======[ Sink #" << ctr + 1 << " ]=======";
-//        qDebug() << "Description: " << sinks[ctr].description;
-//        qDebug() << "Name: " << sinks[ctr].name;
-//        qDebug() << "Index: " << sinks[ctr].index;
-//        qDebug();
-        QString name(sinks[ctr].name);
-
-        if (name == "TestSink" || name == "TestCombinedSink")
+        if (sink_list[ctr].name == fakeCombinedSinkName)
             continue;
-
-        m_sinks[sinks_count]->m_name = sinks[ctr].name;
-        m_sinks[sinks_count]->m_description = sinks[ctr].description;
-        m_sinks[sinks_count]->m_index = sinks[ctr].index;
-        ++sinks_count;
+		m_sinks.emplace_back(new Sink());
+		auto new_sink = m_sinks.back();
+        new_sink->m_name = sink_list[ctr].name.c_str();
+        new_sink->m_description = sink_list[ctr].description.c_str();
+        new_sink->m_index = sink_list[ctr].index;
     }
+	return true;
 }
 
-void FakeLibQmlInterface::updateSourceOuputsList()
+bool FakeLibQmlInterface::updateSourceOuputsList()
 {
-    source_output_infos_t source_outputs[16];
-    if (get_sources_source_output_sinks_and_modules(NULL, source_outputs, NULL, NULL) < 0) {
-        qDebug() << "Error, Failed to fetch source outputs.";
-        return;
-    }
-    source_outputs_count = 0;
-    for (int ctr = 0; ctr < 16; ++ctr) {
-        if (!source_outputs[ctr].initialized) {
+	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
+	auto result = fakeLib
+		.clear_commands()
+		.get_source_output_list()
+		.run_commands();
+	info_list<source_output_infos_t> source_output_list;
+	try {
+		source_output_list = FakeLibUtils::extract<info_list<source_output_infos_t>>(result);
+	} catch (ObjectNotFoundError&) {
+		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch source output list, cancelling";
+		return false;
+	}
+	qDeleteAll(std::begin(m_sourceOutputs), std::end(m_sourceOutputs));
+	m_sourceOutputs.clear();
+    for (int ctr = 0; ctr < info_list_size; ++ctr) {
+		// We assume that as soon as we hit initialized sinks, we've reached the 
+		// end of the initialized sinks
+        if (!source_output_list[ctr].initialized) {
                 break;
         }
-//        qDebug() << "=======[ Source Output #" << ctr + 1 << " ]=======";
-//        qDebug() << "Name: " << source_outputs[ctr].name;
-//        qDebug() << "Source: " << source_outputs[ctr].source;
-//        qDebug() << "Source Process Binary Name : " << source_outputs[ctr].source_process_binary;
-//        qDebug() << "Index: " << source_outputs[ctr].index;
-//        qDebug();
-
-        if (strcmp("pavucontrol", source_outputs[ctr].source_process_binary) == 0)
-            continue;
-
-        m_sourceOutputs[source_outputs_count]->m_name = source_outputs[ctr].name;
-        m_sourceOutputs[source_outputs_count]->m_source = source_outputs[ctr].source;
-        m_sourceOutputs[source_outputs_count]->m_sourceProcessBinaryName = source_outputs[ctr].source_process_binary;
-        m_sourceOutputs[source_outputs_count]->m_index = source_outputs[ctr].index;
-        ++source_outputs_count;
+		m_sourceOutputs.emplace_back(new SourceOutput());
+		auto new_sourceOutput = m_sourceOutputs.back();
+        new_sourceOutput->m_name = source_output_list[ctr].name.c_str();
+        new_sourceOutput->m_sourceProcessBinaryName = source_output_list[ctr].source_process_binary.c_str();
+        new_sourceOutput->m_source = source_output_list[ctr].source;
+        new_sourceOutput->m_index = source_output_list[ctr].index;
     }
+	return true;
 }
 
 SourceOutput *FakeLibQmlInterface::sourceOutputAt(int index)
@@ -78,7 +93,7 @@ SourceOutput *FakeLibQmlInterface::sourceOutputAt(int index)
 
 int FakeLibQmlInterface::sourceOutputsCount() const
 {
-    return source_outputs_count;
+    return m_sourceOutputs.size();
 }
 
 Sink* FakeLibQmlInterface::sinkAt(int index)
@@ -88,14 +103,14 @@ Sink* FakeLibQmlInterface::sinkAt(int index)
 
 int FakeLibQmlInterface::sinkCount() const
 {
-    return sinks_count;
+    return m_sinks.size();
 }
 
-void FakeLibQmlInterface::fakePlay(const QString &wavFilePath, const QString &sinks, const QString &processBinaryName)
+void FakeLibQmlInterface::playOggToApp(const QString &oggFilePath, const QString &sinks, const QString &processBinaryName)
 {
     qDebug() << "Fake play : " << processBinaryName;
     makeFakePlayerThread();
-    fakePlayerThread->wavFilePath = wavFilePath;
+    fakePlayerThread->oggFilePath = oggFilePath;
     fakePlayerThread->sinks = sinks;
     fakePlayerThread->processBinaryName = processBinaryName;
     fakePlayerThread->start();

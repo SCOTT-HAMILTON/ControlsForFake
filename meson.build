@@ -1,4 +1,4 @@
-project('ControlsForFake', 'cpp')
+project('ControlsForFake', 'cpp', default_options : ['cpp_std=c++17'])
 
 qt5 = import('qt5')
 qt5_dep = dependency('qt5', modules: [ 'Core', 'Gui', 'Widgets', 'Qml', 'Quick' ], required: true)
@@ -20,9 +20,11 @@ moc_files = qt5.preprocess(moc_headers :
                            dependencies: qt5_dep,
 			   qresources: [ 'qml.qrc', 'icons.qrc', 'translations.qrc' ])
 
-
-
-lib_fake_dep = dependency('fake', required: true)
+libfake_dep = dependency('fake', required: true)
+libFakeMicWavPlayer_dep = dependency('fakemicwavplayer', required: true)
+libOggPlayer_dep = dependency('oggplayer', required: true)
+libvorbis = dependency('vorbis', required: true)
+libogg = dependency('ogg', required: true)
 
 libpulse_simple = dependency('libpulse-simple')
 
@@ -31,7 +33,7 @@ executable('ControlsForFake',
 	    moc_files,
 	    install: true,
             include_directories: inc,
-            dependencies : [ qt5_dep, libpulse_simple, lib_fake_dep ])
+            dependencies : [ qt5_dep, libpulse_simple, libvorbis, libogg, libOggPlayer_dep, libFakeMicWavPlayer_dep, libfake_dep ])
 
 
 install_data('icons/16-app-icon.png',
