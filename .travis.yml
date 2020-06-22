@@ -22,7 +22,7 @@ matrix:
     - env: CXX=clang++-10
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install libqt5core5a libqt5gui5 libqt5qml5 libqt5quick5
+  - sudo apt-get install libqt5core5a libqt5gui5 libqt5qml5 libqt5quick5 qtbase5-dev
   - sudo apt-get install  qtquickcontrols2-5-dev qt5-default libpulse-dev libogg-dev libvorbis-dev python3-pip python3-setuptools
 
 install:
