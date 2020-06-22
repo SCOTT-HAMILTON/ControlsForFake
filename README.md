@@ -5,7 +5,7 @@
 ![Powered by Pulseaudio](icons/powered_by_pulseaudio.png)
 
 
-![Build Passing](icons/buld-passing.svg)
+![Travis CI Build Status](https://travis-ci.org/SCOTT-HAMILTON/ControlsForFake.svg?branch=master)
 
 This is the Gui frontend for the Fake Microphone Wav Player [https://github.com/SCOTT-HAMILTON/FakeMicWavPlayer](https://github.com/SCOTT-HAMILTON/FakeMicWavPlayer)
 
