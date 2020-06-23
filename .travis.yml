@@ -39,7 +39,7 @@ install:
   - cd argparse
   - mkdir build
   - cd build
-  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DARGPARSE_BUILD_TESTS=ON ..
+  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DARGPARSE_BUILD_TESTS=OFF ..
   - cd ..
   - ninja -C build
   - sudo ninja -C build install
@@ -48,7 +48,6 @@ install:
   - cd FakeMicWavPlayer
   - mkdir build
   - meson build
-  - cat build/meson-logs/meson-log.txt
   - ninja -C build
   - sudo ninja -C build install
   - cd ..
@@ -56,5 +55,6 @@ install:
 script:
   - mkdir build
   - meson build
+  - cat build/meson-logs/meson-log.txt
   - ninja -C build
 
