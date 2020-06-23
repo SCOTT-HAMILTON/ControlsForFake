@@ -14,6 +14,7 @@ addons:
     - cmake
     - ninja-build
     - libstdc++-8-dev
+    - 
     update: true
 
 
@@ -47,6 +48,7 @@ install:
   - cd FakeMicWavPlayer
   - mkdir build
   - meson build
+  - cat build/meson-logs/meson-log.txt
   - ninja -C build
   - sudo ninja -C build install
   - cd ..
