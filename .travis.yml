@@ -22,8 +22,8 @@ matrix:
     - env: CXX=clang++-10
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install libqt5core5a libqt5gui5 libqt5qml5 libqt5quick5 qtbase5-dev qt5-qmake qtdeclarative5-dev
-  - sudo apt-get install  qtquickcontrols2-5-dev qt5-default libpulse-dev libogg-dev libvorbis-dev python3-pip python3-setuptools
+  - sudo apt-get install libqt5qml5 libqt5quick5 qtbase5-dev qtdeclarative5-dev qt5-default
+  - sudo apt-get install libpulse-dev libogg-dev libvorbis-dev python3-pip python3-setuptools
 
 install:
   - sudo python3 -m pip install meson
@@ -54,6 +54,5 @@ install:
 script:
   - mkdir build
   - meson build
-  - cat build/meson-logs/meson-log.txt
   - ninja -C build
 
