@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     qmlRegisterType<Sink>("org.controlfake.sink", 1, 0, "Sink");
+    qmlRegisterType<Source>("org.controlfake.source", 1, 0, "Source");
     qmlRegisterType<SourceOutput>("org.controlfake.sourceOutput", 1, 0, "SourceOutput");
 
     FakeLibQmlInterface fakelibQmlInterface;
@@ -34,7 +35,6 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     engine.load(url);
-
 
     return app.exec();
 }

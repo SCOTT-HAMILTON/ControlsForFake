@@ -14,26 +14,21 @@ inc = include_directories('include')
 moc_files = qt5.preprocess(moc_headers : 
 			     [ 'include/fakelibqmlinterface.h', 
 			       'include/sink.h', 
+			       'include/source.h', 
 			       'include/sinklist.h', 
 			       'include/sourceoutput.h' ],
                            include_directories: inc,
                            dependencies: qt5_dep,
 			   qresources: [ 'qml.qrc', 'icons.qrc', 'translations.qrc' ])
 
-libfake_dep = dependency('fake', required: true)
 libFakeMicWavPlayer_dep = dependency('fakemicwavplayer', required: true)
-libOggPlayer_dep = dependency('oggplayer', required: true)
-libvorbis = dependency('vorbis', required: true)
-libogg = dependency('ogg', required: true)
-
-libpulse_simple = dependency('libpulse-simple')
 
 executable('ControlsForFake', 
-	    [ 'main.cpp', 'fakelibqmlinterface.cpp', 'sink.cpp', 'sourceoutput.cpp' ],
+	    [ 'main.cpp', 'fakelibqmlinterface.cpp', 'sink.cpp', 'source.cpp', 'sourceoutput.cpp' ],
 	    moc_files,
 	    install: true,
             include_directories: inc,
-            dependencies : [ qt5_dep, libpulse_simple, libvorbis, libogg, libOggPlayer_dep, libFakeMicWavPlayer_dep, libfake_dep ])
+            dependencies : [ qt5_dep, libFakeMicWavPlayer_dep ])
 
 
 install_data('icons/16-app-icon.png',

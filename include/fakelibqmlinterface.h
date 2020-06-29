@@ -2,6 +2,7 @@
 #define FAKELIBQMLINTERFACE_H
 
 #include "sink.h"
+#include "source.h"
 #include "sourceoutput.h"
 
 #include <FakeLib.h>
@@ -21,6 +22,7 @@ class FakePlayerThread : public QThread
     {
     }
     QString oggFilePath;
+	QString source;
     QString sinks;
     QString processBinaryName;
 	bool error;
@@ -28,14 +30,14 @@ class FakePlayerThread : public QThread
 protected:
     void run() override {
 		error = false;
-		if (FakeMicWavPlayer::init(oggFilePath.toStdString().c_str(),
-				   sinks.toStdString().c_str(),
-				   processBinaryName.toStdString().c_str()) != 0) {
-			error = true;
-			emit processFinished();
-			return;
-		}
-		if (FakeMicWavPlayer::set_volume(90.0) != 0) {
+		qDebug() << "Thread : oggFilePath : " << oggFilePath;
+		qDebug() << "Thread : source : " << source;
+		qDebug() << "Thread : sinks : " << sinks;
+		qDebug() << "Thread : processBinaryName : " << processBinaryName;
+		if (FakeMicWavPlayer::init(oggFilePath.toStdString(),
+								   source.toStdString(),
+								   sinks.toStdString(),
+								   processBinaryName.toStdString()) != 0) {
 			error = true;
 			emit processFinished();
 			return;
@@ -74,19 +76,27 @@ public:
     Q_INVOKABLE Sink* sinkAt(int index);
     Q_INVOKABLE int sinkCount() const;
 
+    Q_INVOKABLE bool updateSourcesList();
+    Q_INVOKABLE Source* sourceAt(int index);
+    Q_INVOKABLE int sourceCount() const;
 
     Q_INVOKABLE bool updateSourceOuputsList();
     Q_INVOKABLE SourceOutput* sourceOutputAt(int index);
     Q_INVOKABLE int sourceOutputsCount() const;
 
+	Q_INVOKABLE bool set_user_volume(double volume);
+	Q_INVOKABLE bool set_source_volume(double volume);
+
     Q_INVOKABLE void playOggToApp(const QString& oggFilePath,
-                              const QString& sinks,
-                              const QString& processBinaryName);
+								  const QString& source,
+								  const QString& sinks,
+								  const QString& processBinaryName);
 
 signals:
 
 private:
     std::vector<Sink*> m_sinks;
+    std::vector<Source*> m_sources;
     std::vector<SourceOutput*> m_sourceOutputs;
 
     FakePlayerThread* fakePlayerThread;

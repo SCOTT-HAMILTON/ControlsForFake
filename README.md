@@ -32,9 +32,13 @@ Here are a few screenshots of the app.
 	
 
 # Requirements
- - FakeLib (provided by [https://github.com/SCOTT-HAMILTON/FakeMicWavPlayer](http://))
- - Qt 5.14 (The QML code could be adapted to support all Qt 5 )
+ - [FakeLib](https://github.com/SCOTT-HAMILTON/FakeLib)
+ - [FakeMicWavPlayer](https://github.com/SCOTT-HAMILTON/FakeMicWavPlayer) (libFakeMicWavPlayer needed)
+ - Qt5 
  - QtQuick2
+ - libvorbis
+ - libogg
+ - libpulseaudio
 
 License
 ----

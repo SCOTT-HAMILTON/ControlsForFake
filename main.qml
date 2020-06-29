@@ -1,17 +1,19 @@
 import QtGraphicalEffects 1
 import QtQuick 2.12
 import QtQuick.Window 2
-import QtQuick.Controls 2
+import QtQuick.Controls 2.12
 import QtQuick.Controls.Material 2
 import QtQuick.Controls.Styles 1
 import Qt.labs.platform 1
 
 import org.controlfake.sink 1.0
+import org.controlfake.source 1.0
+import org.controlfake.sourceOutput 1.0
 
 Window {
 	id: root
 	visible: true
-	width: 600
+	width: 900
 	minimumWidth: width
 	maximumWidth: width
 	minimumHeight: height
@@ -22,26 +24,26 @@ Window {
 	Material.theme: Material.Dark
 	Material.accent: Material.Pink
 
+	property string sourceName: ""
+	property int sourceIndex: -1
+	property string sourceOutputName: ""
+	property int sourceOutputIndex: -1
 	property var sinks: []
-	property var sourceOutputs: []
 
 	function generateSinksCommandLine() {
-		if (sinks.length>0)
 		return sinks.join(',')
-		return "default"
 	}
 
 	function generateCommandLine() {
 		let command = "./FakeMicWavPlayer "+wavFileText.text
 		command += ' '+generateSinksCommandLine()
-		if (sourceOutputProcessBinaryNameComboBox.currentText !== "Default")
+		if (sourceOutputProcessBinaryNameComboBox.currentText !== "")
 		command += ' '+sourceOutputProcessBinaryNameComboBox.currentText
 		console.log(command)
 		return command
 	}
 
 	property var setSinkChecked: function(name, checked) {
-		console.log("Sink changed : ",name,", ",checked)
 		let sinkIndex = sinks.indexOf(name)
 		if (checked && sinkIndex === -1){
 			sinks.push(name)
@@ -56,26 +58,20 @@ Window {
 					sinksComboBox.displayText = sinksModel.get(i).description
 				}
 			}
-
 		}
 	}
-
-	property var setSourceOutputChecked: function(name, checked) {
-		console.log("new name : ", name)
-		let sourceIndex = sourceOutputs.indexOf(name)
-		console.log("index of ", name," is ",sourceIndex)
-		if (checked && sourceIndex === -2){
-			sourceOutputs.push(name)
-		} else if (!checked && sourceIndex >= -1) {
-			sourceOutputs.splice(sourceIndex, 1)
-		}
-		if (sourceOutputs.length === 0) {
-			sourceOutputProcessBinaryNameComboBox.displayText = "Default"
+	property var setSourceChecked: function(name, index, checked) {
+		if (!checked){
+			sourcesComboBox.displayText = "Default"
+			root.sourceName = ""
+			root.sourceIndex = -1
 		} else {
-			for (let i = 0; i < sourceOutputsModel.count; ++i) {
-				console.log("source outputs : ", sourceOutputs[0])
-				if (sourceOutputsModel.get(i).name === sourceOutputs[0]) {
-					sourceOutputProcessBinaryNameComboBox.displayText = name
+			root.sourceName = name
+			root.sourceIndex = index
+			
+			for (let i = 0; i < sourcesModel.count; ++i) {
+				if (sourcesModel.get(i).index === root.sourceIndex) {
+					sourcesComboBox.displayText = sourcesModel.get(i).description
 				}
 			}
 		}
@@ -85,6 +81,7 @@ Window {
 		id: wavFileDialog
 		defaultSuffix: "wav"
 		nameFilters: ["Ogg data, Vorbis audio (*.ogg)"]
+		folder: StandardPaths.writableLocation(StandardPaths.MusicLocation)
 		onAccepted: {
 			wavFileText.text = file.toString().substring(7)
 			console.log("file : ",currentFile)
@@ -122,10 +119,6 @@ Window {
 				wavFileTextDelayTimer.start()
 			}
 
-			onTextChanged: {
-				//            cursorPosition = 0
-			}
-
 			Timer {
 				id: wavFileTextDelayTimer
 				interval: 100
@@ -152,7 +145,7 @@ Window {
 	Button {
 		id: openWaveFileButton
 		text: qsTr("Open Ogg file...")
-		width: root.width*0.4
+		width: root.width*0.27
 		onClicked: {
 			wavFileDialog.open()
 		}
@@ -180,7 +173,7 @@ Window {
 	Text {
 		id: sourceOutputText
 		text: qsTr("Source Output")
-		width: root.width*0.4
+		width: root.width*0.27
 		x: sourceOutputProcessBinaryNameComboBox.x+sourceOutputProcessBinaryNameComboBox.width/2-width/2
 		color: "#FFFFFF"
 		Component.onCompleted: {
@@ -191,69 +184,194 @@ Window {
 
 	ComboBox {
 		id: sourceOutputProcessBinaryNameComboBox
-		width: root.width*0.4
-		x: root.width*0.05
+		width: root.width*0.27
+		x: root.width*0.033
 		displayText: "Default"
-
 		model:  ListModel {
 			id: sourceOutputsModel
-			ListElement { name: ""; index: -1; isChecked: false }
+			ListElement { name: ""; processBinary:""; index: -1; isChecked: false }
 		}
-		signal binaryNameCheckedChange(var name, var checked)
 		delegate: CheckBox {
-			text: name
+			text: processBinary
+			enabled: index === -1 ?  false : true
 			checked: isChecked
+			onCheckedChanged: {
+				if (index === -1) {
+					return
+				}
+				sourceOutputProcessBinaryNameComboBox.displayText = processBinary
+				if (!checked) {
+					root.sourceOutputName = ""
+					root.sourceOutputIndex = -1
+					sourceOutputProcessBinaryNameComboBox.displayText = "Default"
+				} else {
+					root.sourceOutputName = name
+					root.sourceOutputIndex = index
+				}
+				for (let i = 0; i < sourceOutputsModel.count; ++i) {
+					if (sourceOutputsModel.get(i).index === index) {
+						sourceOutputsModel.set(i, { "name":name,
+						"processBinary":processBinary,
+						"index":index, "isChecked": checked})
+						break
+					}
+				}
+			}
+		}
+		onPressedChanged: {
+			if (pressed){
+				updateSourceOutputsModel()
+			}
+		}
+		property var updateSourceOutputsModel: function() {
+			fakelibQmlInterface.updateSourceOuputsList()
+			let sourceOutputsCount = fakelibQmlInterface.sourceOutputsCount()
+			sourceOutputsModel.clear()
+			if (sourceOutputsCount === 0) {
+				sourceOutputsModel.append({ "name": qsTr("No Source Output Available"),
+					"index": -1, "isChecked": false})
+			}
+			for (let i = 0; i < sourceOutputsCount; ++i) {
+				let sourceOutput = fakelibQmlInterface.sourceOutputAt(i)
+				let isChecked = false
+				// if (i == 0 && root.sourceOutputIndex === -1) {
+				// 	isChecked = true
+				// 	displayText = sourceOutput.sourceProcessBinaryName
+				// }
+				if (root.sourceOutputIndex === sourceOutput.index) {
+					isChecked = true
+				}
+				sourceOutputsModel.append({"name": sourceOutput.name, 
+										   "processBinary": sourceOutput.sourceProcessBinaryName,
+										   "index": sourceOutput.index, "isChecked": isChecked})
+			}
+			currentIndex = 0
+		}
+		Component.onCompleted: {
+			height = root.height*0.25
+			y = root.height*0.40
+			updateSourceOutputsModel();
+			let sourceOutputsCount = fakelibQmlInterface.sourceOutputsCount()
+			if (sourceOutputsCount > 0) {
+				let sourceOutput = fakelibQmlInterface.sourceOutputAt(0)
+				for (let i = 0; i < sourceOutputsModel.count; ++i) {
+					if (sourceOutputsModel.get(i).index === sourceOutput.index) {
+						root.sourceOutputName = sourceOutput.name
+						root.sourceOutputIndex = sourceOutput.index
+						sourceOutputProcessBinaryNameComboBox.displayText = sourceOutput.name
+						sourceOutputsModel.set(i, { "name":sourceOutput.name,
+						"index":sourceOutput.index, "isChecked": true})
+						break
+					}
+				}
+			}
+			
+		}
+	}
 
+	Slider {
+		id: sourceOutputVolumeSlider
+		width: sourceOutputProcessBinaryNameComboBox.width
+		x: sourceOutputProcessBinaryNameComboBox.x
+		value: 100
+		to: 200
+		onValueChanged: {
+			fakelibQmlInterface.set_source_volume(value)
+		}
+		Component.onCompleted: {
+			height = root.height*0.25
+			y = root.height*0.7
+		}
+	}
+
+	Text {
+		id: sourceText
+		text: qsTr("Sources")
+		width: root.width*0.27
+		x: sourcesComboBox.x
+		color: "#FFFFFF"
+		Component.onCompleted: {
+			height = root.height*0.25
+			y = root.height*0.3
+		}
+	}
+
+	ComboBox {
+		id: sourcesComboBox
+		width: root.width*0.27
+		x: root.width/2-width/2
+		displayText: "Default"
+		model:  ListModel {
+			id: sourcesModel
+			ListElement { description: "Default"; name: ""; index: -1; isChecked: false}
+		}
+		signal sourceCheckedChange(var name, var index, var checked)
+		delegate: CheckBox {
+			id: control
+			text: description
+			checked: isChecked
 			onCheckedChanged: {
 				if (checked) {
-					sourceOutputProcessBinaryNameComboBox.displayText = name
-					for (let i = 0; i < sourceOutputsModel.count; ++i) {
-						if (sourceOutputsModel.get(i).index === index) {
-							sourceOutputsModel.set(i, { "name":name,
+					sourcesComboBox.displayText = description
+					for (let i = 0; i < sourcesModel.count; ++i) {
+						if (sourcesModel.get(i).index === index) {
+							sourcesModel.set(i, { "description": description,
+							"name":name,
 							"index":index,
 							"isChecked": true})
 							break
 						}
 					}
 				}
-
-				sourceOutputProcessBinaryNameComboBox.binaryNameCheckedChange(name, checked)
+				sourcesComboBox.sourceCheckedChange(name, index, checked)
 			}
 		}
-
 		onPressedChanged: {
 			if (pressed){
-				updateSourceOutputsModel()
+				updateSourcesModel()
 			}
 		}
-
-
-		property var updateSourceOutputsModel: function() {
-			fakelibQmlInterface.updateSourceOuputsList()
-			let sourceOutputsCount = fakelibQmlInterface.sourceOutputsCount()
-			sourceOutputsModel.clear()
-			for (let i = 0; i < sourceOutputsCount; ++i) {
-				let sourceOutput = fakelibQmlInterface.sourceOutputAt(i)
-				let isChecked = root.sourceOutputs.indexOf(sourceOutput.sourceProcessBinaryName)!==-1
-				sourceOutputsModel.append({ "name": sourceOutput.sourceProcessBinaryName,
-				"index": sourceOutput.index,
+		property var updateSourcesModel: function() {
+			fakelibQmlInterface.updateSourcesList()
+			let sourcesCount = fakelibQmlInterface.sourceCount()
+			sourcesModel.clear()
+			for (let i = 0; i < sourcesCount; ++i) {
+				let source = fakelibQmlInterface.sourceAt(i)
+				let isChecked = source.index === root.sourceIndex
+				sourcesModel.append({ "description":source.description,
+				"name":source.name,
+				"index": source.index,
 				"isChecked": isChecked})
 			}
 			currentIndex = 0
 		}
-
 		Component.onCompleted: {
 			height = root.height*0.25
 			y = root.height*0.4
-			sourceOutputProcessBinaryNameComboBox.binaryNameCheckedChange.connect(root.setSourceOutputChecked)
-			updateSourceOutputsModel();
+			sourcesComboBox.sourceCheckedChange.connect(root.setSourceChecked)
+			updateSourcesModel();
+			let sourcesCount = fakelibQmlInterface.sourceCount()
+			if (sourcesCount > 0) {
+				let source = fakelibQmlInterface.sourceAt(0)
+				for (let i = 0; i < sourcesModel.count; ++i) {
+					if (sourcesModel.get(i).index === source.index) {
+						root.sourceName = source.name
+						sourcesComboBox.displayText = source.description
+						sourcesModel.set(i, { "description": source.description,
+						"name":source.name,
+						"index":source.index,
+						"isChecked": true})
+						break
+					}
+				}
+			}
 		}
 	}
 
 	Text {
 		id: sinkText
 		text: qsTr("Sinks")
-		width: root.width*0.4
+		width: root.width*0.27
 		x: sinksComboBox.x+sinksComboBox.width/2-width/2
 		color: "#FFFFFF"
 		Component.onCompleted: {
@@ -262,13 +380,11 @@ Window {
 		}
 	}
 
-
 	ComboBox {
 		id: sinksComboBox
-		width: root.width*0.4
-		x: root.width*0.95-width
+		width: root.width*0.27
+		x: root.width*0.97-width
 		displayText: "Default"
-
 		model:  ListModel {
 			id: sinksModel
 			ListElement { description: "Default"; name: ""; index: -1; isChecked: false}
@@ -290,27 +406,24 @@ Window {
 						}
 					}
 				}
-
 				sinksComboBox.sinkCheckedChange(name, checked)
 			}
 		}
-
 		onPressedChanged: {
 			if (pressed){
-				console.log("pressed")
 				updateSinksModel()
 			}
 		}
-
-
 		property var updateSinksModel: function() {
 			fakelibQmlInterface.updateSinksList()
 			let sinksCount = fakelibQmlInterface.sinkCount()
 			sinksModel.clear()
-			let first = ""
+			if (root.sinks.length === 0 && sinksCount > 0) {
+				sinksComboBox.displayText = fakelibQmlInterface.sinkAt(0).description
+				root.sinks.push(fakelibQmlInterface.sinkAt(0).name)
+			}
 			for (let i = 0; i < sinksCount; ++i) {
 				let sink = fakelibQmlInterface.sinkAt(i)
-				if (i === 0) first = sink.description
 				let isChecked = root.sinks.indexOf(sink.name)!==-1
 				sinksModel.append({ "description":sink.description,
 				"name":sink.name,
@@ -319,13 +432,26 @@ Window {
 			}
 			currentIndex = 0
 		}
-
 		Component.onCompleted: {
 			height = root.height*0.25
 			y = root.height*0.4
 			sinksComboBox.sinkCheckedChange.connect(root.setSinkChecked)
-
 			updateSinksModel();
+		}
+	}
+
+	Slider {
+		id: sinksVolumeSlider
+		width: sinksComboBox.width
+		x: sinksComboBox.x
+		value: 100
+		to: 200
+		onValueChanged: {
+			fakelibQmlInterface.set_user_volume(value)
+		}
+		Component.onCompleted: {
+			height = root.height*0.25
+			y = root.height*0.7
 		}
 	}
 
@@ -394,7 +520,7 @@ Window {
 	Button {
 		id: runButton
 		text: qsTr("Play")
-		width: root.width*0.4
+		width: root.width*0.27
 		x: root.width/2-width/2
 		enabled: false
 		highlighted: true
@@ -402,11 +528,12 @@ Window {
 			commandLineText.text = root.generateCommandLine()
 			console.log("command line : "+root.generateCommandLine())
 			heightAnim.start()
+			console.log("Sinks CMD : "+root.sinks)
+			console.log("Source : "+root.sourceName)
 			fakelibQmlInterface.playOggToApp(wavFileText.text,
-			generateSinksCommandLine(),
-			(sourceOutputProcessBinaryNameComboBox.currentText!==""?
-			sourceOutputProcessBinaryNameComboBox.currentText:""
-		))
+				root.sourceName,
+				generateSinksCommandLine(),
+				sourceOutputProcessBinaryNameComboBox.currentText)
 	}
 	Component.onCompleted: {
 		height = root.height*0.25

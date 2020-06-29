@@ -54,6 +54,61 @@ bool FakeLibQmlInterface::updateSinksList()
 	return true;
 }
 
+Sink* FakeLibQmlInterface::sinkAt(int index)
+{
+    return m_sinks.at(index);
+}
+
+int FakeLibQmlInterface::sinkCount() const
+{
+    return m_sinks.size();
+}
+
+bool FakeLibQmlInterface::updateSourcesList()
+{
+	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
+	auto result = fakeLib
+		.clear_commands()
+		.get_source_list()
+		.run_commands();
+	info_list<source_infos_t> source_list;
+	try {
+		source_list = FakeLibUtils::extract<info_list<source_infos_t>>(result);
+	} catch (ObjectNotFoundError&) {
+		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch source list, cancelling";
+		return false;
+	}
+	qDeleteAll(std::begin(m_sources), std::end(m_sources));
+	m_sources.clear();
+    for (int ctr = 0; ctr < info_list_size; ++ctr) {
+		// We assume that as soon as we hit initialized sources, we've reached the 
+		// end of the initialized sources
+        if (!source_list[ctr].initialized) {
+                break;
+        }
+		// Source Is a monitor (name ends with .monitor)
+		if (auto& name = source_list[ctr].name; name.rfind(".monitor") == name.size()-8) {
+			continue;
+		}
+		m_sources.emplace_back(new Source());
+		auto new_source = m_sources.back();
+        new_source->m_name = source_list[ctr].name.c_str();
+        new_source->m_description = source_list[ctr].description.c_str();
+        new_source->m_index = source_list[ctr].index;
+    }
+	return true;
+}
+
+Source* FakeLibQmlInterface::sourceAt(int index)
+{
+    return m_sources.at(index);
+}
+
+int FakeLibQmlInterface::sourceCount() const
+{
+    return m_sources.size();
+}
+
 bool FakeLibQmlInterface::updateSourceOuputsList()
 {
 	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
@@ -95,22 +150,30 @@ int FakeLibQmlInterface::sourceOutputsCount() const
 {
     return m_sourceOutputs.size();
 }
-
-Sink* FakeLibQmlInterface::sinkAt(int index)
-{
-    return m_sinks.at(index);
+bool FakeLibQmlInterface::set_user_volume(double volume) {
+	if (!fakePlayerThread->isRunning()) {
+		qDebug() << "[error] No audio is playing, can't set user volume";
+		return true;
+	}
+	return FakeMicWavPlayer::set_user_volume(volume) != 0;
 }
 
-int FakeLibQmlInterface::sinkCount() const
-{
-    return m_sinks.size();
+bool FakeLibQmlInterface::set_source_volume(double volume) {
+	if (!fakePlayerThread->isRunning()) {
+		qDebug() << "[error] No audio is playing, can't set source volume";
+		return true;
+	}
+	return FakeMicWavPlayer::set_source_volume(volume) != 0;
 }
 
-void FakeLibQmlInterface::playOggToApp(const QString &oggFilePath, const QString &sinks, const QString &processBinaryName)
+void FakeLibQmlInterface::playOggToApp(const QString &oggFilePath, 
+									   const QString &source,
+									   const QString &sinks,
+									   const QString &processBinaryName)
 {
-    qDebug() << "Fake play : " << processBinaryName;
     makeFakePlayerThread();
     fakePlayerThread->oggFilePath = oggFilePath;
+    fakePlayerThread->source = source;
     fakePlayerThread->sinks = sinks;
     fakePlayerThread->processBinaryName = processBinaryName;
     fakePlayerThread->start();
