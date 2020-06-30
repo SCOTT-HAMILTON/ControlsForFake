@@ -228,10 +228,12 @@ Window {
 			let sourceOutputsCount = fakelibQmlInterface.sourceOutputsCount()
 			sourceOutputsModel.clear()
 			if (sourceOutputsCount === 0) {
-				sourceOutputsModel.append({ "name": qsTr("No Source Output Available"),
+				sourceOutputsModel.append({ "name": "",
+					"processBinary": qsTr("No Source Output Available"),
 					"index": -1, "isChecked": false})
 			}
 			for (let i = 0; i < sourceOutputsCount; ++i) {
+				console.log("iterate")
 				let sourceOutput = fakelibQmlInterface.sourceOutputAt(i)
 				let isChecked = false
 				// if (i == 0 && root.sourceOutputIndex === -1) {

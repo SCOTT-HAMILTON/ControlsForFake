@@ -151,7 +151,7 @@ int FakeLibQmlInterface::sourceOutputsCount() const
     return m_sourceOutputs.size();
 }
 bool FakeLibQmlInterface::set_user_volume(double volume) {
-	if (!fakePlayerThread->isRunning()) {
+	if (fakePlayerThread != nullptr && !fakePlayerThread->isRunning()) {
 		qDebug() << "[error] No audio is playing, can't set user volume";
 		return true;
 	}
@@ -159,7 +159,7 @@ bool FakeLibQmlInterface::set_user_volume(double volume) {
 }
 
 bool FakeLibQmlInterface::set_source_volume(double volume) {
-	if (!fakePlayerThread->isRunning()) {
+	if (fakePlayerThread && !fakePlayerThread->isRunning()) {
 		qDebug() << "[error] No audio is playing, can't set source volume";
 		return true;
 	}

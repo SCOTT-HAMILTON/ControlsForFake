@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE TS>
-<TS version="2.1" language="fr_FR">
+<TS language="fr_FR" version="2.1">
 <context>
     <name>main</name>
     <message>
         <source>Controls for Fake</source>
-        <translation>Manette de commande pour Fake</translation>
+        <translation type="unfinished">Manette de commande pour Fake</translation>
     </message>
     <message>
         <source>Open Ogg file...</source>
@@ -13,7 +13,15 @@
     </message>
     <message>
         <source>Source Output</source>
-        <translation>Application D'enregistrement</translation>
+        <translation>Application d'enregistrement</translation>
+    </message>
+    <message>
+        <source>No Source Output Available</source>
+        <translation>Aucune application d'enregistrement</translation>
+    </message>
+    <message>
+        <source>Sources</source>
+        <translation>Périphériques d'entrée</translation>
     </message>
     <message>
         <source>Sinks</source>
@@ -21,7 +29,7 @@
     </message>
     <message>
         <source>Play</source>
-        <translation>Jouer</translation>
+        <translation>Lancer</translation>
     </message>
 </context>
 </TS>
