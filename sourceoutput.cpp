@@ -5,8 +5,9 @@ SourceOutput::SourceOutput(const QString &name,
                            const QString &sourceProcessBinaryName,
                            int index,
                            QObject *parent) :
-    QObject(parent), m_name(name), m_source(source),
-    m_sourceProcessBinaryName(sourceProcessBinaryName), m_index(index)
+    QObject(parent), m_name(name),
+    m_sourceProcessBinaryName(sourceProcessBinaryName),
+	m_source(source), m_index(index)
 {
 }
 
