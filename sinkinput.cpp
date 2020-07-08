@@ -1,32 +1,32 @@
-#include "sourceoutput.h"
+#include "sinkinput.h"
 
-SourceOutput::SourceOutput(const QString &name,
-                           int source,
+SinkInput::SinkInput(const QString &name,
+                           int sink,
                            const QString &processBinaryName,
                            int index,
                            QObject *parent) :
     QObject(parent), m_name(name),
     m_processBinaryName(processBinaryName),
-	m_source(source), m_index(index)
+	m_sink(sink), m_index(index)
 {
 }
 
-QString SourceOutput::name() const
+QString SinkInput::name() const
 {
     return m_name;
 }
 
-int SourceOutput::source() const
+int SinkInput::sink() const
 {
-    return m_source;
+    return m_sink;
 }
 
-QString SourceOutput::processBinaryName() const
+QString SinkInput::processBinaryName() const
 {
     return m_processBinaryName;
 }
 
-int SourceOutput::index() const
+int SinkInput::index() const
 {
     return m_index;
 }

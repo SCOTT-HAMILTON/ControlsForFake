@@ -5,7 +5,7 @@
 #include <iterator>
 
 FakeLibQmlInterface::FakeLibQmlInterface(QObject *parent) :
-    QObject(parent), fakePlayerThread(nullptr)
+    QObject(parent), fakePlayerThread(nullptr), m_running(false)
 {
 }
 FakeLibQmlInterface::~FakeLibQmlInterface()
@@ -134,7 +134,7 @@ bool FakeLibQmlInterface::updateSourceOuputsList()
 		m_sourceOutputs.emplace_back(new SourceOutput());
 		auto new_sourceOutput = m_sourceOutputs.back();
         new_sourceOutput->m_name = source_output_list[ctr].name.c_str();
-        new_sourceOutput->m_sourceProcessBinaryName = source_output_list[ctr].source_process_binary.c_str();
+        new_sourceOutput->m_processBinaryName = source_output_list[ctr].process_binary.c_str();
         new_sourceOutput->m_source = source_output_list[ctr].source;
         new_sourceOutput->m_index = source_output_list[ctr].index;
     }
@@ -150,6 +150,49 @@ int FakeLibQmlInterface::sourceOutputsCount() const
 {
     return m_sourceOutputs.size();
 }
+
+bool FakeLibQmlInterface::updateSinkInputsList()
+{
+	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
+	auto result = fakeLib
+		.clear_commands()
+		.get_sink_input_list()
+		.run_commands();
+	info_list<sink_input_infos_t> sink_input_list;
+	try {
+		sink_input_list = FakeLibUtils::extract<info_list<sink_input_infos_t>>(result);
+	} catch (ObjectNotFoundError&) {
+		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch sink input list, cancelling";
+		return false;
+	}
+	qDeleteAll(std::begin(m_sinkInputs), std::end(m_sinkInputs));
+	m_sinkInputs.clear();
+    for (int ctr = 0; ctr < info_list_size; ++ctr) {
+		// We assume that as soon as we hit initialized sinks, we've reached the 
+		// end of the initialized sinks
+        if (!sink_input_list[ctr].initialized) {
+                break;
+        }
+		m_sinkInputs.emplace_back(new SinkInput());
+		auto new_sinkInput = m_sinkInputs.back();
+        new_sinkInput->m_name = sink_input_list[ctr].name.c_str();
+        new_sinkInput->m_processBinaryName = sink_input_list[ctr].process_binary.c_str();
+        new_sinkInput->m_sink = sink_input_list[ctr].sink;
+        new_sinkInput->m_index = sink_input_list[ctr].index;
+    }
+	return true;
+}
+
+SinkInput *FakeLibQmlInterface::sinkInputAt(int index)
+{
+    return m_sinkInputs.at(index);
+}
+
+int FakeLibQmlInterface::sinkInputsCount() const
+{
+    return m_sinkInputs.size();
+}
+
 bool FakeLibQmlInterface::set_user_volume(double volume) {
 	if (fakePlayerThread != nullptr && !fakePlayerThread->isRunning()) {
 		qDebug() << "[error] No audio is playing, can't set user volume";
@@ -172,11 +215,43 @@ void FakeLibQmlInterface::playOggToApp(const QString &oggFilePath,
 									   const QString &processBinaryName)
 {
     makeFakePlayerThread();
+	fakePlayerThread->streamInputMode = AUDIO_FILE;
     fakePlayerThread->oggFilePath = oggFilePath;
     fakePlayerThread->source = source;
     fakePlayerThread->sinks = sinks;
     fakePlayerThread->processBinaryName = processBinaryName;
     fakePlayerThread->start();
+	m_running = true;
+	emit runningChanged(m_running);
+}
+
+void FakeLibQmlInterface::sendAppSoundToApp(const QString &applicationBinaryName, 
+									   const QString &source,
+									   const QString &sinks,
+									   const QString &processBinaryName)
+{
+    makeFakePlayerThread();
+	fakePlayerThread->streamInputMode = APPLICATION;
+    fakePlayerThread->applicationBinaryName = applicationBinaryName;
+    fakePlayerThread->source = source;
+    fakePlayerThread->sinks = sinks;
+    fakePlayerThread->processBinaryName = processBinaryName;
+    fakePlayerThread->start();
+	m_running = true;
+	emit runningChanged(m_running);
+}
+
+void FakeLibQmlInterface::clean() {
+	FakeMicWavPlayer::clean();
+}
+
+bool FakeLibQmlInterface::running() const {
+	return m_running;
+}
+
+void FakeLibQmlInterface::setNotRunning() {
+	m_running = false;
+	emit runningChanged(m_running);
 }
 
 void FakeLibQmlInterface::makeFakePlayerThread()
@@ -189,5 +264,6 @@ void FakeLibQmlInterface::makeFakePlayerThread()
         fakePlayerThread->deleteLater();
     }
     fakePlayerThread = new FakePlayerThread(this);
+	QObject::connect(fakePlayerThread, &FakePlayerThread::processFinished, this, &FakeLibQmlInterface::setNotRunning);
 }
 

@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>PulseAudioComboBox.qml</file>
+        <file>SourceOutputComboBox.qml</file>
+        <file>SourceComboBox.qml</file>
+        <file>SinkInputComboBox.qml</file>
     </qresource>
 </RCC>

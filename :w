@@ -9,7 +9,6 @@ import Qt.labs.platform 1
 import org.controlfake.sink 1.0
 import org.controlfake.source 1.0
 import org.controlfake.sourceOutput 1.0
-import org.controlfake.sinkInput 1.0
 
 Window {
     id: root
@@ -29,16 +28,14 @@ Window {
     property int sourceIndex: -1
     property string sourceOutputName: ""
     property int sourceOutputIndex: -1
-    property string sinkInputName: ""
-    property int sinkInputIndex: -1
-	property var sinks: []
+    property var sinks: []
 
     function generateSinksCommandLine() {
         return sinks.join(',')
     }
 
     function generateCommandLine() {
-        let command = "./FakeMicWavPlayer "+audioFileText.text
+        let command = "./FakeMicWavPlayer "+wavFileText.text
         command += ' '+generateSinksCommandLine()
         if (sourceOutputProcessBinaryNameComboBox.currentText !== "")
         command += ' '+sourceOutputProcessBinaryNameComboBox.currentText
@@ -75,18 +72,19 @@ Window {
     }
 
     FileDialog {
-        id: audioFileDialog
-        defaultSuffix: "ogg"
+        id: wavFileDialog
+        defaultSuffix: "wav"
         nameFilters: ["Ogg data, Vorbis audio (*.ogg)"]
-		folder: StandardPaths.writableLocation(StandardPaths.MusicLocation)
-		file: ""
-		fileMode: FileDialog.OpenFile
-		onAccepted: {
-            audioFileText.text = file.toString().substring(7)
-            audioFileText.visible = true
+        folder: musicFolder
+        onAccepted: {
+            wavFileText.text = file.toString().substring(7)
+            console.log("file : ",currentFile)
+            wavFileText.visible = true
             startStreamButton.slideRight()
-            audioFileText.slideRight()
-		}
+            wavFileText.slideRight()
+
+            runButton.enabled = true
+        }
     }
 
     Rectangle {
@@ -101,68 +99,73 @@ Window {
             y = root.height*0.1
         }
         TextInput {
-            id: audioFileText
+            id: wavFileText
             visible: true
             width: parent.width*0.9
-            text: ""
+            text: "lol"
             color: "#0000FF"
             font.pointSize: 13
             clip: true
             anchors.centerIn: parent
+
+
             property var slideRight: function() {
-                audioFileTextDelayTimer.start()
+                wavFileTextDelayTimer.start()
             }
+
             Timer {
-                id: audioFileTextDelayTimer
+                id: wavFileTextDelayTimer
                 interval: 100
                 repeat: false
                 running: false
                 triggeredOnStart:  false
                 onTriggered: {
-                    audioFileTextSlideRightAnim.start()
+                    wavFileTextSlideRightAnim.start()
                 }
             }
+
             PropertyAnimation {
-                id: audioFileTextSlideRightAnim
-                target: audioFileText.parent
+                id: wavFileTextSlideRightAnim
+                target: wavFileText.parent
                 property: "x"
-                from: audioFileText.parent.x
+                from: wavFileText.parent.x
                 to: root.width*0.02
                 easing.type:  Easing.OutCubic
                 duration: 1000
-			}
+            }
         }
-	}
+    }
 
     Button {
         id: startStreamButton
         width: root.width*0.27
 		onClicked: {
 			switch (state) {
-				case "AudioFile": audioFileDialog.open()
+				case "AudioFile": wavFileDialog.open()
+				case "Application": console.log("application")
 			}
         }
         property var slideRight: function() {
             startStreamButtonSlideRightAnim.start()
         }
+
         states: [
             State {
                 name: "AudioFile"
                 PropertyChanges {
                     target: startStreamButton
-					text: qsTr("Open Ogg file...")
-					visible: true
-				}
+                    text: qsTr("Open Ogg file...")
+                }
             },
             State {
                 name: "Application"
                 PropertyChanges {
                     target: startStreamButton
-					text: qsTr("Choose An Application")
-					visible: false
+                    text: qsTr("Choose An Application")
                 }
             }
-		]
+        ]
+
         PropertyAnimation {
             id: startStreamButtonSlideRightAnim
             target: startStreamButton
@@ -172,11 +175,12 @@ Window {
             easing.type:  Easing.OutCubic
             duration: 1000
         }
+
         Component.onCompleted: {
             x = root.width*0.5-width/2
             height = root.height*0.25
             y = root.height*0.05
-			state = "AudioFile"
+            state = "AudioFile"
         }
     }
 	Menu {
@@ -185,37 +189,15 @@ Window {
 			text: qsTr("Audio Ogg File")
 		    onTriggered: {
 				startStreamButton.state = "AudioFile"
-				sinkInputApplicationComboBox.visible = false
 			}
 		}
 		MenuItem {
 			text: qsTr("Application")
 		    onTriggered: {
 				startStreamButton.state = "Application"
-				sinkInputApplicationComboBox.visible = true
 			}
 		}
 	}
-	SinkInputComboBox {
-        id: sinkInputApplicationComboBox
-        width: startStreamButton.width
-        height: startStreamButton.height
-        x: startStreamButton.x
-		y: startStreamButton.y
-		visible: false
-		onCheckedChanged: {
-			if (!checked) {
-				root.sinkInputName = ""
-				root.sinkInputIndex = -1
-			} else {
-				root.sinkInputName = description
-				root.sinkInputIndex = index
-			}
-		}
-		Component.onCompleted: {
-			setInit()
-		}
-    }
     Button {
         id: switchAudioStream
         text: qsTr("...")
@@ -258,7 +240,11 @@ Window {
 		Component.onCompleted: {
 			y = root.height*0.40
 			height = root.height*0.25
-			setInit()
+			updateModel();
+			if (model.count > 0) {
+				let obj = model.get(0)
+				checkedChanged(obj.name, obj.description, obj.index, true)
+			}
 		}
     }
 
@@ -293,12 +279,25 @@ Window {
         id: sourcesComboBox
         width: root.width*0.27
         x: root.width/2-width/2
+		onCheckedChanged: {
+			// if (checked) {
+			// 	sourcesComboBox.displayText = description
+			// 	for (let i = 0; i < sourcesModel.count; ++i) {
+			// 		if (sourcesModel.get(i).index === index) {
+			// 			sourcesModel.set(i, { "description": description,
+			// 			"name":name,
+			// 			"index":index,
+			// 			"isChecked": true})
+			// 			break
+			// 		}
+			// 	}
+			// }
+		}
         Component.onCompleted: {
             height = root.height*0.25
             y = root.height*0.4
             sourcesComboBox.checkedChanged.connect(root.setSourceChecked)
-			updateModel()
-			setInit()
+            updateModel();
         }
     }
 
@@ -443,6 +442,7 @@ Window {
         onStarted: {
             root.maximumHeight = to
         }
+
         onFinished: {
             commandLineText.y = root.height*0.93-commandLineText.height
             commandLineText.visible = true
@@ -452,67 +452,25 @@ Window {
 
     Button {
         id: runButton
-		width: root.width*0.27
+        text: qsTr("Play")
+        width: root.width*0.27
         x: root.width/2-width/2
-		enabled:  (startStreamButton.state === "AudioFile" && audioFileText.text !== "") ||
-				  (startStreamButton.state === "Application" && sinkInputIndex !== -1)
+        enabled: false
         highlighted: true
-		onClicked: {
-			if (state == "Stop") {
-				fakelibQmlInterface.clean();
-			}
-			if (state == "Play") {
-				commandLineText.text = root.generateCommandLine()
-				console.log("command line : "+root.generateCommandLine())
-				heightAnim.start()
-				console.log("Sinks CMD : "+root.sinks)
-				console.log("Source : "+root.sourceName)
-				switch (startStreamButton.state) {
-					case "AudioFile": {
-						fakelibQmlInterface.playOggToApp(audioFileText.text,
-							root.sourceName,
-							generateSinksCommandLine(),
-							sourceOutputProcessBinaryNameComboBox.currentText)
-						break
-					}
-					case "Application": {
-						fakelibQmlInterface.sendAppSoundToApp(sinkInputName,
-							root.sourceName,
-							generateSinksCommandLine(),
-							sourceOutputProcessBinaryNameComboBox.currentText)
-						state = "Stop"
-						break
-					}
-				}
-			}
-		}
-		states: [
-			State {
-				name: "Play"
-				PropertyChanges {
-					target: runButton
-					text: qsTr("Play")
-				}
-			},
-			State {
-				name: "Stop"
-				PropertyChanges {
-					target: runButton
-					text: qsTr("Stop")
-				}
-			}
-		]
-		Connections {
-			target: fakelibQmlInterface
-			onRunningChanged: {
-				console.log("running changed to "+fakelibQmlInterface.running)
-			}
-		}
-			
-		state: "Play"
-		Component.onCompleted: {
-			height = root.height*0.25
-			y = root.height*0.95-height
-		}
-	}
+        onClicked: {
+            commandLineText.text = root.generateCommandLine()
+            console.log("command line : "+root.generateCommandLine())
+            heightAnim.start()
+            console.log("Sinks CMD : "+root.sinks)
+            console.log("Source : "+root.sourceName)
+            fakelibQmlInterface.playOggToApp(wavFileText.text,
+                root.sourceName,
+                generateSinksCommandLine(),
+                sourceOutputProcessBinaryNameComboBox.currentText)
+    }
+    Component.onCompleted: {
+        height = root.height*0.25
+        y = root.height*0.95-height
+    }
+}
 }

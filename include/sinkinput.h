@@ -1,32 +1,32 @@
-#ifndef SOURCEOUTPUT_H
-#define SOURCEOUTPUT_H
+#ifndef SINKINPUT_H
+#define SINKINPUT_H
 
 #include <QObject>
 
-class SourceOutput : public QObject
+class SinkInput : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QString source READ source)
+    Q_PROPERTY(QString sink READ sink)
     Q_PROPERTY(QString processBinaryName READ processBinaryName)
     Q_PROPERTY(int index READ index)
 public:
-    explicit SourceOutput(const QString& name = "",
-                          int source = -1,
+    explicit SinkInput(const QString& name = "",
+                          int sink = -1,
                           const QString& processBinaryName = "",
                           int index = -1,
                           QObject *parent = nullptr);
 
     QString name() const;
-    int source() const;
+    int sink() const;
     QString processBinaryName() const;
     int index() const;
 
     QString m_name;
     QString m_processBinaryName;
-    int m_source;
+    int m_sink;
     int m_index;
 
 };
 
-#endif // SOURCEOUTPUT_H
+#endif // SINKINPUT_H

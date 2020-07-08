@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QStandardPaths>
 #include <QTranslator>
 
 #include "fakelibqmlinterface.h"
@@ -23,10 +24,10 @@ int main(int argc, char *argv[])
     qmlRegisterType<Sink>("org.controlfake.sink", 1, 0, "Sink");
     qmlRegisterType<Source>("org.controlfake.source", 1, 0, "Source");
     qmlRegisterType<SourceOutput>("org.controlfake.sourceOutput", 1, 0, "SourceOutput");
+    qmlRegisterType<SinkInput>("org.controlfake.sinkInput", 1, 0, "SinkInput");
 
     FakeLibQmlInterface fakelibQmlInterface;
     engine.rootContext()->setContextProperty("fakelibQmlInterface", &fakelibQmlInterface);
-
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

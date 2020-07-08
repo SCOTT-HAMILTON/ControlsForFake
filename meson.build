@@ -12,19 +12,21 @@ inc = include_directories('include')
 #   build_by_default : true)
 
 moc_files = qt5.preprocess(moc_headers : 
-			     [ 'include/fakelibqmlinterface.h', 
-			       'include/sink.h', 
-			       'include/source.h', 
-			       'include/sinklist.h', 
-			       'include/sourceoutput.h' ],
-                           include_directories: inc,
-                           dependencies: qt5_dep,
-			   qresources: [ 'qml.qrc', 'icons.qrc', 'translations.qrc' ])
+						   [ 'include/fakelibqmlinterface.h', 
+							 'include/sink.h', 
+							 'include/source.h', 
+							 'include/sinklist.h', 
+							 'include/sourceoutput.h',
+							 'include/sinkinput.h' 
+							],
+						   include_directories: inc,
+						   dependencies: qt5_dep,
+						   qresources: [ 'qml.qrc', 'icons.qrc', 'translations.qrc' ])
 
 libFakeMicWavPlayer_dep = dependency('fakemicwavplayer', required: true)
 
 executable('ControlsForFake', 
-	    [ 'main.cpp', 'fakelibqmlinterface.cpp', 'sink.cpp', 'source.cpp', 'sourceoutput.cpp' ],
+	    [ 'main.cpp', 'fakelibqmlinterface.cpp', 'sink.cpp', 'source.cpp', 'sourceoutput.cpp', 'sinkinput.cpp' ],
 	    moc_files,
 	    install: true,
             include_directories: inc,
