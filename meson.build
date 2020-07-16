@@ -25,12 +25,15 @@ moc_files = qt5.preprocess(moc_headers :
 
 libFakeMicWavPlayer_dep = dependency('fakemicwavplayer', required: true)
 
+# add_project_arguments('-rdynamic', language : 'cpp')
+
 executable('ControlsForFake', 
 	    [ 'main.cpp', 'fakelibqmlinterface.cpp', 'sink.cpp', 'source.cpp', 'sourceoutput.cpp', 'sinkinput.cpp' ],
 	    moc_files,
 	    install: true,
-            include_directories: inc,
-            dependencies : [ qt5_dep, libFakeMicWavPlayer_dep ])
+		include_directories: inc,
+		dependencies: [ qt5_dep, libFakeMicWavPlayer_dep ],
+		)
 
 
 install_data('icons/16-app-icon.png',

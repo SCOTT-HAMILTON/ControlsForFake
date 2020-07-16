@@ -6,7 +6,7 @@ PulseAudioComboBox {
 		model.clear()
 		if (sinkInputsCount === 0) {
 			model.append({ "name": "",
-				"description": qsTr("No SinkInput Output Available"),
+				"description": qsTr("No application available"),
 				"index": -1, "isChecked": false})
 		}
 		for (let i = 0; i < sinkInputsCount; ++i) {

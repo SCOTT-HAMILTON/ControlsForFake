@@ -15,11 +15,11 @@ Window {
     id: root
     visible: true
     width: 900
+    height: 200
     minimumWidth: width
     maximumWidth: width
     minimumHeight: height
     maximumHeight: height
-    height: 200
     title: qsTr("Controls for Fake")
     color: "#333333"
     Material.theme: Material.Dark
@@ -54,7 +54,7 @@ Window {
             sinks.splice(sinkIndex, 1)
         }
         if (sinks.length === 0) {
-            sinksComboBox.displayText = "Default"
+            sinksComboBox.displayText = qsTr("Default")
         } else {
             for (let i = 0; i < sinksModel.count; ++i) {
                 if (sinksModel.get(i).name === sinks[0]) {
@@ -65,7 +65,7 @@ Window {
     }
     property var setSourceChecked: function(name, description, index, checked) {
         if (!checked){
-            sourcesComboBox.displayText = "Default"
+            sourcesComboBox.displayText = qsTr("Default")
             root.sourceName = ""
             root.sourceIndex = -1
         } else {
@@ -232,7 +232,7 @@ Window {
 
     Text {
         id: sourceOutputText
-        text: qsTr("Source Output")
+        text: qsTr("Source Outputs")
         width: root.width*0.27
         x: sourceOutputProcessBinaryNameComboBox.x+sourceOutputProcessBinaryNameComboBox.width/2-width/2
         color: "#FFFFFF"
@@ -318,10 +318,10 @@ Window {
         id: sinksComboBox
         width: root.width*0.27
         x: root.width*0.97-width
-        displayText: "Default"
+        displayText: qsTr("Default")
         model:  ListModel {
             id: sinksModel
-            ListElement { description: "Default"; name: ""; index: -1; isChecked: false}
+            ListElement { description: qsTr("Default"); name: ""; index: -1; isChecked: false}
         }
         signal sinkCheckedChange(var name, var checked)
         delegate: CheckBox {
