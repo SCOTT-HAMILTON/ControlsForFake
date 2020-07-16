@@ -2,91 +2,88 @@
 <!DOCTYPE TS>
 <TS language="fr_FR" version="2.1">
 <context>
-    <name>PulseAudioComboBox</name>
+    <name>FakeLibQmlInterface</name>
     <message>
-        <location line="27" filename="PulseAudioComboBox.qml"/>
-        <source>Default</source>
-        <translation>Défaut</translation>
+        <location filename="fakelibqmlinterface.cpp" line="114"/>
+        <source>No Source Available</source>
+        <translation>Aucun Périphérique d'entré disponible</translation>
     </message>
-</context>
-<context>
-    <name>SinkInputComboBox</name>
     <message>
-        <location line="9" filename="SinkInputComboBox.qml"/>
-        <source>No application available</source>
-        <translation>Aucune application disponible</translation>
+        <location filename="fakelibqmlinterface.cpp" line="162"/>
+        <source>No Source Output Available</source>
+        <translation>Aucune Application Disponible</translation>
     </message>
-</context>
-<context>
-    <name>SourceOutputComboBox</name>
     <message>
-        <location line="9" filename="SourceOutputComboBox.qml"/>
-        <source>No application available</source>
-        <translation>Aucune application disponible</translation>
+        <location filename="fakelibqmlinterface.cpp" line="210"/>
+        <source>No Sink Inputs Available</source>
+        <translation>Aucune Application Disponible</translation>
     </message>
 </context>
 <context>
     <name>main</name>
     <message>
-        <location line="23" filename="main.qml"/>
+        <location filename="main.qml" line="23"/>
         <source>Controls for Fake</source>
-        <translation>Manettes de commande pour Fake</translation>
+        <translation>Manettes de Controls pour Fake</translation>
     </message>
     <message>
-        <location line="57" filename="main.qml"/>
-        <location line="68" filename="main.qml"/>
-        <location line="321" filename="main.qml"/>
-        <location line="324" filename="main.qml"/>
-        <source>Default</source>
-        <translation>Défaut</translation>
-    </message>
-    <message>
-        <location line="153" filename="main.qml"/>
+        <location filename="main.qml" line="125"/>
         <source>Open Ogg file...</source>
-        <translation>Ouvrir un fichier OGG...</translation>
+        <translation>Ouvrir un fichier OGG.</translation>
     </message>
     <message>
-        <location line="161" filename="main.qml"/>
+        <location filename="main.qml" line="133"/>
         <source>Choose An Application</source>
         <translation>Choisir une application</translation>
     </message>
     <message>
-        <location line="185" filename="main.qml"/>
+        <location filename="main.qml" line="157"/>
         <source>Audio Ogg File</source>
         <translation>Fichier Audio OGG</translation>
     </message>
     <message>
-        <location line="192" filename="main.qml"/>
+        <location filename="main.qml" line="164"/>
         <source>Application</source>
         <translation>Application</translation>
     </message>
     <message>
-        <location line="221" filename="main.qml"/>
+        <location filename="main.qml" line="183"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location line="235" filename="main.qml"/>
+        <location filename="main.qml" line="197"/>
         <source>Source Outputs</source>
-        <translation>Applications d'enregistrement</translation>
+        <translation>Application d'enregistrement</translation>
     </message>
     <message>
-        <location line="282" filename="main.qml"/>
+        <location filename="main.qml" line="234"/>
         <source>Sources</source>
-        <translation>Périphériques d'enregistrement</translation>
+        <translation>Périphérique d'entré</translation>
     </message>
     <message>
-        <location line="307" filename="main.qml"/>
+        <location filename="main.qml" line="257"/>
         <source>Sinks</source>
-        <translation>Périphériques de sortie</translation>
+        <translation>Périphérique de sortie</translation>
     </message>
     <message>
-        <location line="494" filename="main.qml"/>
+        <location filename="main.qml" line="272"/>
+        <location filename="main.qml" line="287"/>
+        <source> sinks selected</source>
+        <translation> périphériques de sortie</translation>
+    </message>
+    <message>
+        <location filename="main.qml" line="285"/>
+        <source> sink selected</source>
+        <translation> périphérique de sortie</translation>
+    </message>
+    <message>
+        <location filename="main.qml" line="420"/>
         <source>Play</source>
         <translation>Lancer</translation>
     </message>
     <message>
-        <location line="501" filename="main.qml"/>
+        <location filename="main.qml" line="427"/>
         <source>Stop</source>
         <translation>Stop</translation>
     </message>
