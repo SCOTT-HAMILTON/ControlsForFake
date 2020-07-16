@@ -25,10 +25,10 @@ Window {
     Material.theme: Material.Dark
     Material.accent: Material.Pink
 
-    property string sourceName: ""
-    property int sourceIndex: -1
-    property string sourceOutputName: ""
-    property int sourceOutputIndex: -1
+    // property string sourceName: 
+    // property int sourceIndex: -1
+    // property string sourceOutputName: ""
+    // property int sourceOutputIndex: -1
     property string sinkInputName: ""
     property int sinkInputIndex: -1
 	property var sinks: []
@@ -44,34 +44,6 @@ Window {
         command += ' '+sourceOutputProcessBinaryNameComboBox.currentText
         console.log(command)
         return command
-    }
-
-    property var setSinkChecked: function(name, checked) {
-        let sinkIndex = sinks.indexOf(name)
-        if (checked && sinkIndex === -1){
-            sinks.push(name)
-        } else if (!checked && sinkIndex >= -1) {
-            sinks.splice(sinkIndex, 1)
-        }
-        if (sinks.length === 0) {
-            sinksComboBox.displayText = qsTr("Default")
-        } else {
-            for (let i = 0; i < sinksModel.count; ++i) {
-                if (sinksModel.get(i).name === sinks[0]) {
-                    sinksComboBox.displayText = sinksModel.get(i).description
-                }
-            }
-        }
-    }
-    property var setSourceChecked: function(name, description, index, checked) {
-        if (!checked){
-            sourcesComboBox.displayText = qsTr("Default")
-            root.sourceName = ""
-            root.sourceIndex = -1
-        } else {
-            root.sourceName = name
-            root.sourceIndex = index
-        }
     }
 
     FileDialog {
@@ -203,17 +175,7 @@ Window {
         x: startStreamButton.x
 		y: startStreamButton.y
 		visible: false
-		onCheckedChanged: {
-			if (!checked) {
-				root.sinkInputName = ""
-				root.sinkInputIndex = -1
-			} else {
-				root.sinkInputName = description
-				root.sinkInputIndex = index
-			}
-		}
 		Component.onCompleted: {
-			setInit()
 		}
     }
     Button {
@@ -246,19 +208,9 @@ Window {
         id: sourceOutputProcessBinaryNameComboBox
         width: root.width*0.27
 		x: root.width*0.033
-		onCheckedChanged: {
-			if (!checked) {
-				root.sourceOutputName = ""
-				root.sourceOutputIndex = -1
-			} else {
-				root.sourceOutputName = name
-				root.sourceOutputIndex = index
-			}
-		}
 		Component.onCompleted: {
 			y = root.height*0.40
 			height = root.height*0.25
-			setInit()
 		}
     }
 
@@ -296,8 +248,6 @@ Window {
         Component.onCompleted: {
             height = root.height*0.25
             y = root.height*0.4
-            sourcesComboBox.checkedChanged.connect(root.setSourceChecked)
-			updateModel()
 			setInit()
         }
     }
@@ -318,59 +268,35 @@ Window {
         id: sinksComboBox
         width: root.width*0.27
         x: root.width*0.97-width
-        displayText: qsTr("Default")
-        model:  ListModel {
-            id: sinksModel
-            ListElement { description: qsTr("Default"); name: ""; index: -1; isChecked: false}
-        }
-        signal sinkCheckedChange(var name, var checked)
+		model: fakelibQmlInterface.sinks
+		displayText: root.sinks.length+qsTr(" sinks selected")
         delegate: CheckBox {
             text: description
-            checked: isChecked
-            onCheckedChanged: {
-                if (checked) {
-                    sinksComboBox.displayText = description
-                    for (let i = 0; i < sinksModel.count; ++i) {
-                        if (sinksModel.get(i).index === index) {
-                            sinksModel.set(i, { "description": description,
-                            "name":name,
-                            "index":index,
-                            "isChecked": true})
-                            break
-                        }
-                    }
-                }
-                sinksComboBox.sinkCheckedChange(name, checked)
+            checked: root.sinks.includes(index)
+			onCheckedChanged: {
+				let exists = root.sinks.includes(index)
+				if (checked && !exists) {
+					root.sinks.push(index)
+				} else if (!checked && exists) {
+					let sinkIndex = root.sinks.indexOf(index)
+					root.sinks.splice(sinkIndex, 1)
+				}
+				if (root.sinks.length == 1) 
+					sinksComboBox.displayText = root.sinks.length+qsTr(" sink selected")
+				else
+					sinksComboBox.displayText = root.sinks.length+qsTr(" sinks selected")
             }
-        }
+		}
+
         onPressedChanged: {
-            if (pressed){
-                updateSinksModel()
+			if (pressed){
+				fakelibQmlInterface.updateSinksList()
             }
-        }
-        property var updateSinksModel: function() {
-            fakelibQmlInterface.updateSinksList()
-            let sinksCount = fakelibQmlInterface.sinkCount()
-            sinksModel.clear()
-            if (root.sinks.length === 0 && sinksCount > 0) {
-                sinksComboBox.displayText = fakelibQmlInterface.sinkAt(0).description
-                root.sinks.push(fakelibQmlInterface.sinkAt(0).name)
-            }
-            for (let i = 0; i < sinksCount; ++i) {
-                let sink = fakelibQmlInterface.sinkAt(i)
-                let isChecked = root.sinks.indexOf(sink.name)!==-1
-                sinksModel.append({ "description":sink.description,
-                "name":sink.name,
-                "index": sink.index,
-                "isChecked": isChecked})
-            }
-            currentIndex = 0
-        }
+		}
         Component.onCompleted: {
             height = root.height*0.25
-            y = root.height*0.4
-            sinksComboBox.sinkCheckedChange.connect(root.setSinkChecked)
-            updateSinksModel();
+			y = root.height*0.4
+			currentIndex = 0
         }
     }
 

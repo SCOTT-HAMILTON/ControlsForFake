@@ -15,7 +15,6 @@ moc_files = qt5.preprocess(moc_headers :
 						   [ 'include/fakelibqmlinterface.h', 
 							 'include/sink.h', 
 							 'include/source.h', 
-							 'include/sinklist.h', 
 							 'include/sourceoutput.h',
 							 'include/sinkinput.h' 
 							],
@@ -25,14 +24,15 @@ moc_files = qt5.preprocess(moc_headers :
 
 libFakeMicWavPlayer_dep = dependency('fakemicwavplayer', required: true)
 
-# add_project_arguments('-rdynamic', language : 'cpp')
+QQmlObjectListModel_proj = subproject('qt-qml-models')
+QQmlObjectListModel_dep = QQmlObjectListModel_proj.get_variable('lib_dep')
 
 executable('ControlsForFake', 
 	    [ 'main.cpp', 'fakelibqmlinterface.cpp', 'sink.cpp', 'source.cpp', 'sourceoutput.cpp', 'sinkinput.cpp' ],
 	    moc_files,
 	    install: true,
 		include_directories: inc,
-		dependencies: [ qt5_dep, libFakeMicWavPlayer_dep ],
+		dependencies: [ qt5_dep, libFakeMicWavPlayer_dep, QQmlObjectListModel_dep ],
 		)
 
 

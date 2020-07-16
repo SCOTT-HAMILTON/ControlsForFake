@@ -9,7 +9,7 @@ class SinkInput : public QObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString sink READ sink)
     Q_PROPERTY(QString processBinaryName READ processBinaryName)
-    Q_PROPERTY(int index READ index)
+    Q_PROPERTY(int pa_index READ index)
 public:
     explicit SinkInput(const QString& name = "",
                           int sink = -1,

@@ -8,13 +8,15 @@
 
 #include <FakeLib.h>
 #include <FakeMicWavPlayerLib.h>
+#include <QQmlObjectListModel.h>
 
 #include <QObject>
 #include <QQmlListProperty>
 #include <QThread>
 #include <QDebug>
+#include <QList>
 
-#include <array>
+#include <vector>
 
 enum AudioStreamInput { AUDIO_FILE, APPLICATION };
 class FakePlayerThread : public QThread
@@ -91,29 +93,20 @@ class FakeLibQmlInterface : public QObject
 {
     Q_OBJECT
 	Q_PROPERTY(bool running	READ running NOTIFY runningChanged)
+	Q_PROPERTY(QQmlObjectListModelBase* sinks READ sinks NOTIFY sinksChanged)
+	Q_PROPERTY(QQmlObjectListModelBase* sources READ sources NOTIFY sourcesChanged)
+	Q_PROPERTY(QQmlObjectListModelBase* sourceOutputs READ sourceOutputs NOTIFY sourceOutputsChanged)
+	Q_PROPERTY(QQmlObjectListModelBase* sinkInputs READ sinkInputs NOTIFY sinkInputsChanged)
 public:
     explicit FakeLibQmlInterface(QObject *parent = nullptr);
 	~FakeLibQmlInterface();
 
     Q_INVOKABLE bool updateSinksList();
-    Q_INVOKABLE Sink* sinkAt(int index);
-    Q_INVOKABLE int sinkCount() const;
-
     Q_INVOKABLE bool updateSourcesList();
-    Q_INVOKABLE Source* sourceAt(int index);
-    Q_INVOKABLE int sourceCount() const;
-
-    Q_INVOKABLE bool updateSourceOuputsList();
-    Q_INVOKABLE SourceOutput* sourceOutputAt(int index);
-    Q_INVOKABLE int sourceOutputsCount() const;
-
+    Q_INVOKABLE bool updateSourceOutputsList();
     Q_INVOKABLE bool updateSinkInputsList();
-    Q_INVOKABLE SinkInput* sinkInputAt(int index);
-    Q_INVOKABLE int sinkInputsCount() const;
-
 	Q_INVOKABLE bool set_user_volume(double volume);
 	Q_INVOKABLE bool set_source_volume(double volume);
-
     Q_INVOKABLE void playOggToApp(const QString& oggFilePath,
 								  const QString& source,
 								  const QString& sinks,
@@ -123,8 +116,12 @@ public:
 								  const QString& sinks,
 								  const QString& processBinaryName);
 	Q_INVOKABLE void clean();
-
 	bool running() const;
+
+	QQmlObjectListModel<Sink>* sinks();
+	QQmlObjectListModel<Source>* sources();
+	QQmlObjectListModel<SourceOutput>* sourceOutputs();
+	QQmlObjectListModel<SinkInput>* sinkInputs();
 
 public slots:
 	void setNotRunning();
@@ -132,11 +129,16 @@ public slots:
 signals:
 	void runningChanged(bool);
 
+	void sinksChanged();
+	void sourcesChanged();
+	void sourceOutputsChanged();
+	void sinkInputsChanged();
+
 private:
-    std::vector<Sink*> m_sinks;
-    std::vector<Source*> m_sources;
-    std::vector<SourceOutput*> m_sourceOutputs;
-    std::vector<SinkInput*> m_sinkInputs;
+    QQmlObjectListModel<Sink> m_sinks;
+    QQmlObjectListModel<Source> m_sources;
+    QQmlObjectListModel<SourceOutput> m_sourceOutputs;
+    QQmlObjectListModel<SinkInput> m_sinkInputs;
 
     FakePlayerThread* fakePlayerThread;
 	bool m_running;

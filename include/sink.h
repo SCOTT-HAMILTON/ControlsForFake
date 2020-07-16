@@ -8,7 +8,7 @@ class Sink : public QObject
     Q_OBJECT
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString description READ description)
-    Q_PROPERTY(int index READ index)
+    Q_PROPERTY(int pa_index READ index)
 
 public:
     explicit Sink(const QString& name = "",

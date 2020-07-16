@@ -9,7 +9,7 @@ class SourceOutput : public QObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString source READ source)
     Q_PROPERTY(QString processBinaryName READ processBinaryName)
-    Q_PROPERTY(int index READ index)
+    Q_PROPERTY(int pa_index READ index)
 public:
     explicit SourceOutput(const QString& name = "",
                           int source = -1,

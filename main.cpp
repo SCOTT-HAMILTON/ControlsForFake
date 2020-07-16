@@ -3,6 +3,7 @@
 #include <QQmlContext>
 #include <QStandardPaths>
 #include <QTranslator>
+#include <QtQmlTricksPlugin_SmartDataModels.h>
 
 #include "fakelibqmlinterface.h"
 
@@ -25,9 +26,15 @@ int main(int argc, char *argv[])
     qmlRegisterType<Source>("org.controlfake.source", 1, 0, "Source");
     qmlRegisterType<SourceOutput>("org.controlfake.sourceOutput", 1, 0, "SourceOutput");
     qmlRegisterType<SinkInput>("org.controlfake.sinkInput", 1, 0, "SinkInput");
+	registerQtQmlTricksSmartDataModel(&engine);
 
     FakeLibQmlInterface fakelibQmlInterface;
+	fakelibQmlInterface.updateSinksList();
+	fakelibQmlInterface.updateSourcesList();
+	fakelibQmlInterface.updateSourceOutputsList();
+	fakelibQmlInterface.updateSinkInputsList();
     engine.rootContext()->setContextProperty("fakelibQmlInterface", &fakelibQmlInterface);
+	QQmlEngine::setObjectOwnership(&fakelibQmlInterface, QQmlEngine::CppOwnership);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

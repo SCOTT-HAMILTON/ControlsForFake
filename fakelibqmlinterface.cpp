@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <iterator>
+#include <QQmlEngine>
 
 FakeLibQmlInterface::FakeLibQmlInterface(QObject *parent) :
     QObject(parent), fakePlayerThread(nullptr), m_running(false)
@@ -35,8 +36,13 @@ bool FakeLibQmlInterface::updateSinksList()
 		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch sink list, cancelling";
 		return false;
 	}
-	qDeleteAll(std::begin(m_sinks), std::end(m_sinks));
-	m_sinks.clear();
+	if (m_sinks.size() > 0) {
+		for (auto c : m_sinks) {
+			if (c)
+				c->deleteLater();
+		}
+		m_sinks.clear();
+	}
     for (int ctr = 0; ctr < info_list_size; ++ctr) {
 		// We assume that as soon as we hit initialized sinks, we've reached the 
 		// end of the initialized sinks
@@ -45,23 +51,23 @@ bool FakeLibQmlInterface::updateSinksList()
         }
         if (sink_list[ctr].name == fakeCombinedSinkName)
             continue;
-		m_sinks.emplace_back(new Sink());
-		auto new_sink = m_sinks.back();
-        new_sink->m_name = sink_list[ctr].name.c_str();
-        new_sink->m_description = sink_list[ctr].description.c_str();
-        new_sink->m_index = sink_list[ctr].index;
+		auto new_sink = new Sink(
+			sink_list[ctr].name.c_str(),
+			sink_list[ctr].description.c_str(),
+			sink_list[ctr].index
+		);
+		m_sinks.append(new_sink);
     }
+	if (m_sinks.size() == 0) {
+		auto new_sink = new Sink(
+			"",
+			tr("No Sink Available"),
+			-1
+		);
+		m_sinks.append(new_sink);
+	}
+	emit sinksChanged();
 	return true;
-}
-
-Sink* FakeLibQmlInterface::sinkAt(int index)
-{
-    return m_sinks.at(index);
-}
-
-int FakeLibQmlInterface::sinkCount() const
-{
-    return m_sinks.size();
 }
 
 bool FakeLibQmlInterface::updateSourcesList()
@@ -78,8 +84,13 @@ bool FakeLibQmlInterface::updateSourcesList()
 		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch source list, cancelling";
 		return false;
 	}
-	qDeleteAll(std::begin(m_sources), std::end(m_sources));
-	m_sources.clear();
+	if (m_sources.size() > 0) {
+		for (auto c : m_sources) {
+			if (c)
+				c->deleteLater();
+		}
+		m_sources.clear();
+	}
     for (int ctr = 0; ctr < info_list_size; ++ctr) {
 		// We assume that as soon as we hit initialized sources, we've reached the 
 		// end of the initialized sources
@@ -90,26 +101,26 @@ bool FakeLibQmlInterface::updateSourcesList()
 		if (auto& name = source_list[ctr].name; name.rfind(".monitor") == name.size()-8) {
 			continue;
 		}
-		m_sources.emplace_back(new Source());
-		auto new_source = m_sources.back();
-        new_source->m_name = source_list[ctr].name.c_str();
-        new_source->m_description = source_list[ctr].description.c_str();
-        new_source->m_index = source_list[ctr].index;
+		auto new_source = new Source(
+			source_list[ctr].name.c_str(),
+			source_list[ctr].description.c_str(),
+			source_list[ctr].index
+		);
+		m_sources.append(new_source);
     }
+	if (m_sources.size() == 0) {
+		auto new_source = new Source (
+			"",
+			tr("No Source Available"),
+			-1
+		);
+		m_sources.append(new_source);
+	}
+	emit sourcesChanged();
 	return true;
 }
 
-Source* FakeLibQmlInterface::sourceAt(int index)
-{
-    return m_sources.at(index);
-}
-
-int FakeLibQmlInterface::sourceCount() const
-{
-    return m_sources.size();
-}
-
-bool FakeLibQmlInterface::updateSourceOuputsList()
+bool FakeLibQmlInterface::updateSourceOutputsList()
 {
 	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
 	auto result = fakeLib
@@ -123,32 +134,38 @@ bool FakeLibQmlInterface::updateSourceOuputsList()
 		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch source output list, cancelling";
 		return false;
 	}
-	qDeleteAll(std::begin(m_sourceOutputs), std::end(m_sourceOutputs));
-	m_sourceOutputs.clear();
+	if (m_sourceOutputs.size() > 0) {
+		for (auto c : m_sourceOutputs) {
+			if (c)
+				c->deleteLater();
+		}
+		m_sourceOutputs.clear();
+	}
     for (int ctr = 0; ctr < info_list_size; ++ctr) {
 		// We assume that as soon as we hit initialized sinks, we've reached the 
 		// end of the initialized sinks
         if (!source_output_list[ctr].initialized) {
                 break;
         }
-		m_sourceOutputs.emplace_back(new SourceOutput());
-		auto new_sourceOutput = m_sourceOutputs.back();
-        new_sourceOutput->m_name = source_output_list[ctr].name.c_str();
-        new_sourceOutput->m_processBinaryName = source_output_list[ctr].process_binary.c_str();
-        new_sourceOutput->m_source = source_output_list[ctr].source;
-        new_sourceOutput->m_index = source_output_list[ctr].index;
+		auto new_sourceOutput = new SourceOutput (
+			source_output_list[ctr].name.c_str(),
+			source_output_list[ctr].source,
+			source_output_list[ctr].process_binary.c_str(),
+			source_output_list[ctr].index
+		);
+		m_sourceOutputs.append(new_sourceOutput);
     }
+	if (m_sourceOutputs.size() == 0) {
+		auto new_sourceOutput = new SourceOutput (
+			"",
+			0,
+			tr("No Source Output Available"),
+			-1
+		);
+		m_sourceOutputs.append(new_sourceOutput);
+	}
+	emit sourceOutputsChanged();
 	return true;
-}
-
-SourceOutput *FakeLibQmlInterface::sourceOutputAt(int index)
-{
-    return m_sourceOutputs.at(index);
-}
-
-int FakeLibQmlInterface::sourceOutputsCount() const
-{
-    return m_sourceOutputs.size();
 }
 
 bool FakeLibQmlInterface::updateSinkInputsList()
@@ -165,32 +182,38 @@ bool FakeLibQmlInterface::updateSinkInputsList()
 		std::cerr << "[error] FakeLibQMLInterface, couldn't fetch sink input list, cancelling";
 		return false;
 	}
-	qDeleteAll(std::begin(m_sinkInputs), std::end(m_sinkInputs));
-	m_sinkInputs.clear();
+	if (m_sinkInputs.size() > 0) {
+		for (auto c : m_sinkInputs) {
+			if (c)
+				c->deleteLater();
+		}
+		m_sinkInputs.clear();
+	}
     for (int ctr = 0; ctr < info_list_size; ++ctr) {
 		// We assume that as soon as we hit initialized sinks, we've reached the 
 		// end of the initialized sinks
         if (!sink_input_list[ctr].initialized) {
                 break;
         }
-		m_sinkInputs.emplace_back(new SinkInput());
-		auto new_sinkInput = m_sinkInputs.back();
-        new_sinkInput->m_name = sink_input_list[ctr].name.c_str();
-        new_sinkInput->m_processBinaryName = sink_input_list[ctr].process_binary.c_str();
-        new_sinkInput->m_sink = sink_input_list[ctr].sink;
-        new_sinkInput->m_index = sink_input_list[ctr].index;
+		auto new_sinkInput = new SinkInput (
+			sink_input_list[ctr].name.c_str(),
+			sink_input_list[ctr].sink,
+			sink_input_list[ctr].process_binary.c_str(),
+			sink_input_list[ctr].index
+		);
+		m_sinkInputs.append(new_sinkInput);
     }
+	if (m_sinkInputs.size() == 0) {
+		auto new_sinkInput = new SinkInput (
+			"",
+			0,
+			tr("No Sink Inputs Available"),
+			-1
+		);
+		m_sinkInputs.append(new_sinkInput);
+	}
+	emit sinkInputsChanged();
 	return true;
-}
-
-SinkInput *FakeLibQmlInterface::sinkInputAt(int index)
-{
-    return m_sinkInputs.at(index);
-}
-
-int FakeLibQmlInterface::sinkInputsCount() const
-{
-    return m_sinkInputs.size();
 }
 
 bool FakeLibQmlInterface::set_user_volume(double volume) {
@@ -267,3 +290,15 @@ void FakeLibQmlInterface::makeFakePlayerThread()
 	QObject::connect(fakePlayerThread, &FakePlayerThread::processFinished, this, &FakeLibQmlInterface::setNotRunning);
 }
 
+QQmlObjectListModel<Sink> *FakeLibQmlInterface::sinks() {
+	return &m_sinks;
+}
+QQmlObjectListModel<Source>* FakeLibQmlInterface::sources() {
+	return &m_sources;
+}
+QQmlObjectListModel<SourceOutput>* FakeLibQmlInterface::sourceOutputs() {
+	return &m_sourceOutputs;
+}
+QQmlObjectListModel<SinkInput>* FakeLibQmlInterface::sinkInputs() {
+	return &m_sinkInputs;
+}
