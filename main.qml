@@ -25,26 +25,32 @@ Window {
     Material.theme: Material.Dark
     Material.accent: Material.Pink
 
-    // property string sourceName: 
-    // property int sourceIndex: -1
-    // property string sourceOutputName: ""
-    // property int sourceOutputIndex: -1
     property string sinkInputName: ""
     property int sinkInputIndex: -1
 	property var sinks: []
+	property string dummyUpdate: ""
 
-    function generateSinksCommandLine() {
-        return sinks.join(',')
-    }
+	function generateSinksCommandLine() {
+		return sinks.join(',');
+	}
 
-    function generateCommandLine() {
-        let command = "./FakeMicWavPlayer "+audioFileText.text
-        command += ' '+generateSinksCommandLine()
-        if (sourceOutputProcessBinaryNameComboBox.currentText !== "")
-        command += ' '+sourceOutputProcessBinaryNameComboBox.currentText
-        console.log(command)
-        return command
-    }
+
+	function onSinksChanged() {
+		sinks.splice(0, sinks.length)
+		root.dummyUpdateChanged()
+	}
+	function onSourcesChanged() {
+		if (fakelibQmlInterface.sources.count > 0)
+			sourcesComboBox.currentIndex = 0
+	}
+	function onSourceOutputsChanged() {
+		if (fakelibQmlInterface.sourceOutputs.count > 0)
+		sourceOutputProcessBinaryNameComboBox.currentIndex = 0
+	}
+	function onSinkInputsChanged() {
+		if (fakelibQmlInterface.sinkInputs.count > 0)
+			sinkInputApplicationComboBox.currentIndex = 0
+	}
 
     FileDialog {
         id: audioFileDialog
@@ -212,6 +218,12 @@ Window {
 			y = root.height*0.40
 			height = root.height*0.25
 		}
+		Connections {
+			target: fakelibQmlInterface
+			function onSourceOutputsChanged() {
+				console.log("Source Ouput changed")
+			}
+		}
     }
 
     Slider {
@@ -248,7 +260,6 @@ Window {
         Component.onCompleted: {
             height = root.height*0.25
             y = root.height*0.4
-			setInit()
         }
     }
 
@@ -269,16 +280,16 @@ Window {
         width: root.width*0.27
         x: root.width*0.97-width
 		model: fakelibQmlInterface.sinks
-		displayText: root.sinks.length+qsTr(" sinks selected")
+		displayText: root.sinks.length+qsTr(" sinks selected")+root.dummyUpdate
         delegate: CheckBox {
             text: description
-            checked: root.sinks.includes(index)
+            checked: root.sinks.includes(name)
 			onCheckedChanged: {
-				let exists = root.sinks.includes(index)
+				let exists = root.sinks.includes(name)
 				if (checked && !exists) {
-					root.sinks.push(index)
+					root.sinks.push(name)
 				} else if (!checked && exists) {
-					let sinkIndex = root.sinks.indexOf(index)
+					let sinkIndex = root.sinks.indexOf(name)
 					root.sinks.splice(sinkIndex, 1)
 				}
 				if (root.sinks.length == 1) 
@@ -288,11 +299,6 @@ Window {
             }
 		}
 
-        onPressedChanged: {
-			if (pressed){
-				fakelibQmlInterface.updateSinksList()
-            }
-		}
         Component.onCompleted: {
             height = root.height*0.25
 			y = root.height*0.4
@@ -315,95 +321,36 @@ Window {
         }
     }
 
-    TextInput {
-        id: commandLineText
-        font.pointSize: 10
-        color: "#FFFFFF"
-        visible: false
-        clip: true
-        x: root.width/2-commandLineText.width/2
-        verticalAlignment: Qt.AlignVCenter
-        width: root.width*0.8
-
-        onTextChanged: copyCommandButton.enabled = true
-
-        Component.onCompleted: {
-        }
-    }
-
-    Button {
-        id: copyCommandButton
-        visible: false
-        width: root.width*0.045
-        height: root.height*0.15
-        x: root.width*0.97-width
-        y: root.height*0.97-height
-        Material.accent: Material.DeepPurple
-        highlighted: true
-        Image {
-            id: copyIcon
-            fillMode: Image.PreserveAspectFit
-            anchors.centerIn: parent
-            sourceSize.height: copyCommandButton.background.height - 6
-            height: sourceSize.height
-            source: "qrc:/icons/copy.svg"
-        }
-        ColorOverlay {
-            anchors.fill: copyIcon
-            source: copyIcon
-            // In dark styles background is dark, this makes the image white
-            color:"#ffffffff"
-        }
-
-        onClicked: enabled = false
-    }
-
-    PropertyAnimation {
-        id: heightAnim
-        target: root
-        property: "height"
-        from: root.height
-        to: 250
-        easing.type:  Easing.OutCubic
-        duration: 1000
-        onStarted: {
-            root.maximumHeight = to
-        }
-        onFinished: {
-            commandLineText.y = root.height*0.93-commandLineText.height
-            commandLineText.visible = true
-            copyCommandButton.visible = true
-        }
-    }
 
     Button {
         id: runButton
 		width: root.width*0.27
         x: root.width/2-width/2
 		enabled:  (startStreamButton.state === "AudioFile" && audioFileText.text !== "") ||
-				  (startStreamButton.state === "Application" && sinkInputIndex !== -1)
+				  (startStreamButton.state === "Application" && SinkInputComboBox.currentIndex !== -1)
         highlighted: true
 		onClicked: {
 			if (state == "Stop") {
 				fakelibQmlInterface.clean();
+				state = "Play"
 			}
-			if (state == "Play") {
-				commandLineText.text = root.generateCommandLine()
-				console.log("command line : "+root.generateCommandLine())
-				heightAnim.start()
-				console.log("Sinks CMD : "+root.sinks)
-				console.log("Source : "+root.sourceName)
+			else if (state == "Play") {
+				console.log(sourcesComboBox.currentIndex)
+				console.log(sinkInputApplicationComboBox.currentIndex)
+				console.log(fakelibQmlInterface.sources.get(sourcesComboBox.currentIndex).name)
+				console.log(fakelibQmlInterface.sinkInputs.get(sinkInputApplicationComboBox.currentIndex).processBinaryName)
 				switch (startStreamButton.state) {
 					case "AudioFile": {
 						fakelibQmlInterface.playOggToApp(audioFileText.text,
-							root.sourceName,
+							fakelibQmlInterface.sources.get(sourcesComboBox.currentIndex).name,
 							generateSinksCommandLine(),
 							sourceOutputProcessBinaryNameComboBox.currentText)
 						break
 					}
 					case "Application": {
-						fakelibQmlInterface.sendAppSoundToApp(sinkInputName,
-							root.sourceName,
+						fakelibQmlInterface.sendAppSoundToApp(
+							fakelibQmlInterface.sinkInputs.get(sinkInputApplicationComboBox.currentIndex).processBinaryName,
+							fakelibQmlInterface.sources.get(sourcesComboBox.currentIndex).name,
 							generateSinksCommandLine(),
 							sourceOutputProcessBinaryNameComboBox.currentText)
 						state = "Stop"

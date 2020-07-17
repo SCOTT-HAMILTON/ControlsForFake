@@ -2,6 +2,12 @@ project('ControlsForFake', 'cpp', default_options : ['cpp_std=c++17'])
 
 qt5 = import('qt5')
 qt5_dep = dependency('qt5', modules: [ 'Core', 'Gui', 'Widgets', 'Qml', 'Quick' ], required: true)
+libpulse_dep = dependency('libpulse')
+libFakeMicWavPlayer_dep = dependency('fakemicwavplayer', required: true)
+QQmlObjectListModel_proj = subproject('qt-qml-models')
+QQmlObjectListModel_dep = QQmlObjectListModel_proj.get_variable('lib_dep')
+
+dependencies = [ qt5_dep, libpulse_dep, libFakeMicWavPlayer_dep, QQmlObjectListModel_dep ]
 
 inc = include_directories('include')
 
@@ -11,28 +17,39 @@ inc = include_directories('include')
 #   install_dir: 'translations',
 #   build_by_default : true)
 
+
 moc_files = qt5.preprocess(moc_headers : 
 						   [ 'include/fakelibqmlinterface.h', 
+							 'include/fakeplayerthread.h',
+							 'include/SubscribeAndListenThread.h',
 							 'include/sink.h', 
 							 'include/source.h', 
 							 'include/sourceoutput.h',
 							 'include/sinkinput.h' 
 							],
 						   include_directories: inc,
-						   dependencies: qt5_dep,
+						   dependencies: dependencies,
 						   qresources: [ 'qml.qrc', 'icons.qrc', 'translations.qrc' ])
 
-libFakeMicWavPlayer_dep = dependency('fakemicwavplayer', required: true)
 
-QQmlObjectListModel_proj = subproject('qt-qml-models')
-QQmlObjectListModel_dep = QQmlObjectListModel_proj.get_variable('lib_dep')
+
+sources = [
+			'SubscribeAndListenThread.cpp',
+			'fakelibqmlinterface.cpp',
+			'fakeplayerthread.cpp',
+			'main.cpp',
+			'sink.cpp',
+			'sinkinput.cpp',
+			'source.cpp',
+			'sourceoutput.cpp',
+		  ]
 
 executable('ControlsForFake', 
-	    [ 'main.cpp', 'fakelibqmlinterface.cpp', 'sink.cpp', 'source.cpp', 'sourceoutput.cpp', 'sinkinput.cpp' ],
+		sources,
 	    moc_files,
 	    install: true,
 		include_directories: inc,
-		dependencies: [ qt5_dep, libFakeMicWavPlayer_dep, QQmlObjectListModel_dep ],
+		dependencies: dependencies,
 		)
 
 

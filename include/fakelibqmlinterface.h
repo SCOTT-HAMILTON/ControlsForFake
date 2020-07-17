@@ -5,89 +5,21 @@
 #include "source.h"
 #include "sourceoutput.h"
 #include "sinkinput.h"
+#include "fakeplayerthread.h"
+#include "SubscribeAndListenThread.h"
 
 #include <FakeLib.h>
-#include <FakeMicWavPlayerLib.h>
+#include <pulse/subscribe.h>
 #include <QQmlObjectListModel.h>
 
 #include <QObject>
 #include <QQmlListProperty>
-#include <QThread>
 #include <QDebug>
 #include <QList>
 
 #include <vector>
 
-enum AudioStreamInput { AUDIO_FILE, APPLICATION };
-class FakePlayerThread : public QThread
-{ 
-	Q_OBJECT 
-public:
-    explicit FakePlayerThread(QObject* parent = nullptr) :
-        QThread(parent), canRun(true)
-    {
-    }
-    QString oggFilePath;
-    QString applicationBinaryName;
-	QString source;
-    QString sinks;
-    QString processBinaryName;
-	AudioStreamInput streamInputMode;
-	bool error;
-
-protected:
-    void run() override {
-		error = false;
-		qDebug() << "Thread : source : " << source;
-		qDebug() << "Thread : sinks : " << sinks;
-		qDebug() << "Thread : processBinaryName : " << processBinaryName;
-
-		switch  (streamInputMode) {
-			case AUDIO_FILE: {
-				qDebug() << "Thread : oggFilePath : " << oggFilePath;
-				if (FakeMicWavPlayer::initWithAudioFile(oggFilePath.toStdString(),
-										   source.toStdString(),
-										   sinks.toStdString(),
-										   processBinaryName.toStdString()) != 0) {
-					error = true;
-					emit processFinished();
-					return;
-				}
-				canRun = true;
-				while (canRun && FakeMicWavPlayer::playNonBlocking() == 0) {
-				}
-				FakeMicWavPlayer::cleanPlayer();
-				FakeMicWavPlayer::clean();
-				break;
-			}
-			case APPLICATION: {
-				qDebug() << "Thread : Application : " << applicationBinaryName;
-				if (FakeMicWavPlayer::initWithSinkInput(applicationBinaryName.toStdString(),
-										   source.toStdString(),
-										   sinks.toStdString(),
-										   processBinaryName.toStdString()) != 0) {
-					error = true;
-					emit processFinished();
-					return;
-				}
-			}
-		}
-		emit processFinished();
-    }
-
-public slots:
-    void stop(){
-        canRun = false;
-    }
-
-signals:
-    void processFinished();
-    void serverStarted();
-
-private:
-    std::atomic_bool canRun;
-
-};
+Q_DECLARE_METATYPE(pa_subscription_event_type_t)
 
 class FakeLibQmlInterface : public QObject
 {
@@ -115,6 +47,7 @@ public:
 								  const QString& source,
 								  const QString& sinks,
 								  const QString& processBinaryName);
+	Q_INVOKABLE void startPulseAudioSubscribtionListener();
 	Q_INVOKABLE void clean();
 	bool running() const;
 
@@ -125,6 +58,8 @@ public:
 
 public slots:
 	void setNotRunning();
+	void onNewPulseAudioEvent(pa_subscription_event_type_t event);
+	void updateModels();
 
 signals:
 	void runningChanged(bool);
@@ -141,9 +76,12 @@ private:
     QQmlObjectListModel<SinkInput> m_sinkInputs;
 
     FakePlayerThread* fakePlayerThread;
+	SubscribeAndListenThread* pulseaudioSubscribeThread;
 	bool m_running;
 
     void makeFakePlayerThread();
+    void makePulseaudioSubscribeThread();
+	static FakeLib fakeLib;
 };
 
 #endif // FAKELIBQMLINTERFACE_H

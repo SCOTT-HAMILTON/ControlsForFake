@@ -29,10 +29,8 @@ int main(int argc, char *argv[])
 	registerQtQmlTricksSmartDataModel(&engine);
 
     FakeLibQmlInterface fakelibQmlInterface;
-	fakelibQmlInterface.updateSinksList();
-	fakelibQmlInterface.updateSourcesList();
-	fakelibQmlInterface.updateSourceOutputsList();
-	fakelibQmlInterface.updateSinkInputsList();
+	fakelibQmlInterface.updateModels();
+	fakelibQmlInterface.startPulseAudioSubscribtionListener();
     engine.rootContext()->setContextProperty("fakelibQmlInterface", &fakelibQmlInterface);
 	QQmlEngine::setObjectOwnership(&fakelibQmlInterface, QQmlEngine::CppOwnership);
 
@@ -43,6 +41,15 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     engine.load(url);
+
+	QObject::connect(&fakelibQmlInterface, SIGNAL(sinksChanged()),
+			engine.rootObjects()[0], SLOT(onSinksChanged()));
+	QObject::connect(&fakelibQmlInterface, SIGNAL(sourcesChanged()),
+			engine.rootObjects()[0], SLOT(onSourcesChanged()));
+	QObject::connect(&fakelibQmlInterface, SIGNAL(sourceOutputsChanged()),
+			engine.rootObjects()[0], SLOT(onSourceOutputsChanged()));
+	QObject::connect(&fakelibQmlInterface, SIGNAL(sinkInputsChanged()),
+			engine.rootObjects()[0], SLOT(onSinkInputsChanged()));
 
     return app.exec();
 }

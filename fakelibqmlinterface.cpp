@@ -1,13 +1,19 @@
 #include "fakelibqmlinterface.h"
-#include "FakeLibUtils.hpp"
 
 #include <QDebug>
 #include <iterator>
 #include <QQmlEngine>
+#include <FakeLibUtils.hpp>
+#include <FakeMicWavPlayerLib.h>
+
+FakeLib FakeLibQmlInterface::fakeLib;
 
 FakeLibQmlInterface::FakeLibQmlInterface(QObject *parent) :
-    QObject(parent), fakePlayerThread(nullptr), m_running(false)
+    QObject(parent),
+	fakePlayerThread(nullptr), pulseaudioSubscribeThread(nullptr),
+	m_running(false)
 {
+	qRegisterMetaType<pa_subscription_event_type_t>();
 }
 FakeLibQmlInterface::~FakeLibQmlInterface()
 {
@@ -18,13 +24,19 @@ FakeLibQmlInterface::~FakeLibQmlInterface()
 		fakePlayerThread->wait();
 		qDebug() << "Cleaning...";
 	}
+	if (pulseaudioSubscribeThread != nullptr) {
+		qDebug() << "Stoping...";
+		pulseaudioSubscribeThread->stop();
+		qDebug() << "Waiting...";
+		pulseaudioSubscribeThread->wait();
+		qDebug() << "Cleaning...";
+	}
 	FakeMicWavPlayer::clean();
 	qDebug() << "Done";
 }
 
 bool FakeLibQmlInterface::updateSinksList()
 {
-	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
 	auto result = fakeLib
 		.clear_commands()
 		.get_sink_list()
@@ -72,7 +84,6 @@ bool FakeLibQmlInterface::updateSinksList()
 
 bool FakeLibQmlInterface::updateSourcesList()
 {
-	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
 	auto result = fakeLib
 		.clear_commands()
 		.get_source_list()
@@ -122,7 +133,6 @@ bool FakeLibQmlInterface::updateSourcesList()
 
 bool FakeLibQmlInterface::updateSourceOutputsList()
 {
-	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
 	auto result = fakeLib
 		.clear_commands()
 		.get_source_output_list()
@@ -170,7 +180,6 @@ bool FakeLibQmlInterface::updateSourceOutputsList()
 
 bool FakeLibQmlInterface::updateSinkInputsList()
 {
-	FakeLib& fakeLib = FakeMicWavPlayer::fakeLib;
 	auto result = fakeLib
 		.clear_commands()
 		.get_sink_input_list()
@@ -217,7 +226,7 @@ bool FakeLibQmlInterface::updateSinkInputsList()
 }
 
 bool FakeLibQmlInterface::set_user_volume(double volume) {
-	if (fakePlayerThread != nullptr && !fakePlayerThread->isRunning()) {
+	if (!m_running) {
 		qDebug() << "[error] No audio is playing, can't set user volume";
 		return true;
 	}
@@ -225,7 +234,7 @@ bool FakeLibQmlInterface::set_user_volume(double volume) {
 }
 
 bool FakeLibQmlInterface::set_source_volume(double volume) {
-	if (fakePlayerThread && !fakePlayerThread->isRunning()) {
+	if (!m_running) {
 		qDebug() << "[error] No audio is playing, can't set source volume";
 		return true;
 	}
@@ -263,8 +272,15 @@ void FakeLibQmlInterface::sendAppSoundToApp(const QString &applicationBinaryName
 	m_running = true;
 	emit runningChanged(m_running);
 }
+void FakeLibQmlInterface::startPulseAudioSubscribtionListener() {
+	makePulseaudioSubscribeThread();
+	QObject::connect(pulseaudioSubscribeThread, &SubscribeAndListenThread::newEvent, this, &FakeLibQmlInterface::onNewPulseAudioEvent);
+	pulseaudioSubscribeThread->start();
+}
 
 void FakeLibQmlInterface::clean() {
+	m_running = false;
+	emit runningChanged(m_running);
 	FakeMicWavPlayer::clean();
 }
 
@@ -277,6 +293,24 @@ void FakeLibQmlInterface::setNotRunning() {
 	emit runningChanged(m_running);
 }
 
+void FakeLibQmlInterface::onNewPulseAudioEvent(pa_subscription_event_type_t event) {
+	if ((event & PA_SUBSCRIPTION_EVENT_MODULE) ||
+		(event & PA_SUBSCRIPTION_EVENT_NEW) ||
+		(event & PA_SUBSCRIPTION_EVENT_REMOVE) ||
+		(event & PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT) ||
+		(event & PA_SUBSCRIPTION_EVENT_SINK_INPUT)
+	   ) {
+		updateModels();
+	}
+}
+
+void FakeLibQmlInterface::updateModels() {
+	updateSinksList();
+	updateSourcesList();
+	updateSourceOutputsList();
+	updateSinkInputsList();
+}
+
 void FakeLibQmlInterface::makeFakePlayerThread()
 {
     if (fakePlayerThread != nullptr){
@@ -287,7 +321,18 @@ void FakeLibQmlInterface::makeFakePlayerThread()
         fakePlayerThread->deleteLater();
     }
     fakePlayerThread = new FakePlayerThread(this);
-	QObject::connect(fakePlayerThread, &FakePlayerThread::processFinished, this, &FakeLibQmlInterface::setNotRunning);
+}
+
+void FakeLibQmlInterface::makePulseaudioSubscribeThread()
+{
+    if (pulseaudioSubscribeThread != nullptr){
+        if (pulseaudioSubscribeThread->isRunning() || !pulseaudioSubscribeThread->isFinished()){
+            qDebug() << "Error, can't make new thread, still running.";
+            return;
+        }
+        pulseaudioSubscribeThread->deleteLater();
+    }
+    pulseaudioSubscribeThread = new SubscribeAndListenThread(this);
 }
 
 QQmlObjectListModel<Sink> *FakeLibQmlInterface::sinks() {

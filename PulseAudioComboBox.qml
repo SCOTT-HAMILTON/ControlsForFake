@@ -10,20 +10,5 @@ ComboBox {
 
 	signal itemChanged(var name, var description, var index)
 
-	onCurrentIndexChanged: {
-		// if (currentIndex == -1) return
-		// let item = listModel.get(currentIndex)
-		// itemChanged(item.name, item.description, item.index)
-	}
-
-	onPressedChanged: {
-		if (pressed){
-			updateModel()
-		}
-	}
-
-	property var setInit: function () {
-	}
-
 	property var updateModel
 }
