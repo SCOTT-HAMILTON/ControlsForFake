@@ -27,17 +27,17 @@ Window {
 
     property string sinkInputName: ""
     property int sinkInputIndex: -1
-	property var sinks: []
-	property string dummyUpdate: ""
+	property var sinks: [ ]
+	property string sinksDummyUpdate: "" 
+	property string sinkInputsDummyUpdate: "" 
 
 	function generateSinksCommandLine() {
 		return sinks.join(',');
 	}
 
-
 	function onSinksChanged() {
 		sinks.splice(0, sinks.length)
-		root.dummyUpdateChanged()
+		root.sinksDummyUpdateChanged()
 	}
 	function onSourcesChanged() {
 		if (fakelibQmlInterface.sources.count > 0)
@@ -49,7 +49,8 @@ Window {
 	}
 	function onSinkInputsChanged() {
 		if (fakelibQmlInterface.sinkInputs.count > 0)
-			sinkInputApplicationComboBox.currentIndex = 0
+			sinkInputComboBox.currentIndex = 0
+		root.sinkInputsDummyUpdateChanged()
 	}
 
     FileDialog {
@@ -128,7 +129,7 @@ Window {
                 name: "AudioFile"
                 PropertyChanges {
                     target: startStreamButton
-					text: qsTr("Open Ogg file...")
+					text: qsTr("Open OGG File...")
 					visible: true
 				}
             },
@@ -136,7 +137,6 @@ Window {
                 name: "Application"
                 PropertyChanges {
                     target: startStreamButton
-					text: qsTr("Choose An Application")
 					visible: false
                 }
             }
@@ -160,29 +160,27 @@ Window {
 	Menu {
 		id: audioStreamSourceMenu
 		MenuItem { 
-			text: qsTr("Audio Ogg File")
+			text: qsTr("Audio OGG File")
 		    onTriggered: {
 				startStreamButton.state = "AudioFile"
-				sinkInputApplicationComboBox.visible = false
+				sinkInputComboBox.visible = false
 			}
 		}
 		MenuItem {
 			text: qsTr("Application")
 		    onTriggered: {
 				startStreamButton.state = "Application"
-				sinkInputApplicationComboBox.visible = true
+				sinkInputComboBox.visible = true
 			}
 		}
 	}
 	SinkInputComboBox {
-        id: sinkInputApplicationComboBox
+        id: sinkInputComboBox
         width: startStreamButton.width
         height: startStreamButton.height
         x: startStreamButton.x
 		y: startStreamButton.y
 		visible: false
-		Component.onCompleted: {
-		}
     }
     Button {
         id: switchAudioStream
@@ -200,7 +198,7 @@ Window {
 
     Text {
         id: sourceOutputText
-        text: qsTr("Source Outputs")
+        text: qsTr("Recording Applications")
         width: root.width*0.27
         x: sourceOutputProcessBinaryNameComboBox.x+sourceOutputProcessBinaryNameComboBox.width/2-width/2
         color: "#FFFFFF"
@@ -243,7 +241,7 @@ Window {
 
     Text {
         id: sourceText
-        text: qsTr("Sources")
+        text: qsTr("Input Devices")
         width: root.width*0.27
         x: sourcesComboBox.x
         color: "#FFFFFF"
@@ -265,7 +263,7 @@ Window {
 
     Text {
         id: sinkText
-        text: qsTr("Sinks")
+        text: qsTr("Output Devices")
         width: root.width*0.27
         x: sinksComboBox.x+sinksComboBox.width/2-width/2
         color: "#FFFFFF"
@@ -280,7 +278,7 @@ Window {
         width: root.width*0.27
         x: root.width*0.97-width
 		model: fakelibQmlInterface.sinks
-		displayText: root.sinks.length+qsTr(" sinks selected")+root.dummyUpdate
+		displayText: root.sinks.length+qsTr(" sinks selected")+root.sinksDummyUpdate
         delegate: CheckBox {
             text: description
             checked: root.sinks.includes(name)
@@ -321,13 +319,15 @@ Window {
         }
     }
 
-
     Button {
         id: runButton
 		width: root.width*0.27
         x: root.width/2-width/2
-		enabled:  (startStreamButton.state === "AudioFile" && audioFileText.text !== "") ||
-				  (startStreamButton.state === "Application" && SinkInputComboBox.currentIndex !== -1)
+		enabled:  
+		(startStreamButton.state === "AudioFile" && audioFileText.text !== "") ||
+		(startStreamButton.state === "Application"+root.sinkInputsDummyUpdate && 
+			sinkInputComboBox.currentIndex >= 0 &&
+			fakelibQmlInterface.sinkInputs.get(sinkInputComboBox.currentIndex).pa_index !== -1)
         highlighted: true
 		onClicked: {
 			if (state == "Stop") {
@@ -336,9 +336,9 @@ Window {
 			}
 			else if (state == "Play") {
 				console.log(sourcesComboBox.currentIndex)
-				console.log(sinkInputApplicationComboBox.currentIndex)
+				console.log(sinkInputComboBox.currentIndex)
 				console.log(fakelibQmlInterface.sources.get(sourcesComboBox.currentIndex).name)
-				console.log(fakelibQmlInterface.sinkInputs.get(sinkInputApplicationComboBox.currentIndex).processBinaryName)
+				console.log(fakelibQmlInterface.sinkInputs.get(sinkInputComboBox.currentIndex).processBinaryName)
 				switch (startStreamButton.state) {
 					case "AudioFile": {
 						fakelibQmlInterface.playOggToApp(audioFileText.text,
@@ -349,7 +349,7 @@ Window {
 					}
 					case "Application": {
 						fakelibQmlInterface.sendAppSoundToApp(
-							fakelibQmlInterface.sinkInputs.get(sinkInputApplicationComboBox.currentIndex).processBinaryName,
+							fakelibQmlInterface.sinkInputs.get(sinkInputComboBox.currentIndex).processBinaryName,
 							fakelibQmlInterface.sources.get(sourcesComboBox.currentIndex).name,
 							generateSinksCommandLine(),
 							sourceOutputProcessBinaryNameComboBox.currentText)

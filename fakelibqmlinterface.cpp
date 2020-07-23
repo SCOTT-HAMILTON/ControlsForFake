@@ -73,7 +73,7 @@ bool FakeLibQmlInterface::updateSinksList()
 	if (m_sinks.size() == 0) {
 		auto new_sink = new Sink(
 			"",
-			tr("No Sink Available"),
+			tr("No output device available"),
 			-1
 		);
 		m_sinks.append(new_sink);
@@ -122,7 +122,7 @@ bool FakeLibQmlInterface::updateSourcesList()
 	if (m_sources.size() == 0) {
 		auto new_source = new Source (
 			"",
-			tr("No Source Available"),
+			tr("No input device available"),
 			-1
 		);
 		m_sources.append(new_source);
@@ -169,7 +169,7 @@ bool FakeLibQmlInterface::updateSourceOutputsList()
 		auto new_sourceOutput = new SourceOutput (
 			"",
 			0,
-			tr("No Source Output Available"),
+			tr("No application available"),
 			-1
 		);
 		m_sourceOutputs.append(new_sourceOutput);
@@ -216,7 +216,7 @@ bool FakeLibQmlInterface::updateSinkInputsList()
 		auto new_sinkInput = new SinkInput (
 			"",
 			0,
-			tr("No Sink Inputs Available"),
+			tr("No application available"),
 			-1
 		);
 		m_sinkInputs.append(new_sinkInput);

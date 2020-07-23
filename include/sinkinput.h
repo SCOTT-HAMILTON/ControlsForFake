@@ -9,7 +9,7 @@ class SinkInput : public QObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString sink READ sink)
     Q_PROPERTY(QString processBinaryName READ processBinaryName)
-    Q_PROPERTY(int pa_index READ index)
+    Q_PROPERTY(int pa_index READ index NOTIFY indexChanged)
 public:
     explicit SinkInput(const QString& name = "",
                           int sink = -1,
@@ -27,6 +27,8 @@ public:
     int m_sink;
     int m_index;
 
+signals:
+	void indexChanged();
 };
 
 #endif // SINKINPUT_H
