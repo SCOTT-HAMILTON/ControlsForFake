@@ -1,5 +1,7 @@
 # Controls for Fake Microphone Wav Player
 
+ > If you prefer Gtk apps, checkout [ControlsForFake-gtk](https://github.com/SCOTT-HAMILTON/ControlsForFake-gtk)
+
 ![powered by Pulseaudio](https://www.freedesktop.org/software/pulseaudio/logo.png)
 
 ![Powered by Pulseaudio](icons/powered_by_pulseaudio.png)
