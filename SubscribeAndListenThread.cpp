@@ -6,10 +6,14 @@
 #include <chrono>
 
 FakeLib SubscribeAndListenThread::fakeLib;
+SubscribeAndListenThread* SubscribeAndListenThread::singleton = nullptr;
+
+void eventCallback(pa_subscription_event_type_t event) {
+	emit SubscribeAndListenThread::singleton->newEvent(event);
+}
 
 SubscribeAndListenThread::SubscribeAndListenThread(QObject* parent) : 
-	QThread(parent),
-	callback(std::bind(&SubscribeAndListenThread::eventCallback, this, std::placeholders::_1))
+	QThread(parent)
 {
 }
 
@@ -21,7 +25,7 @@ void SubscribeAndListenThread::run() {
 				PA_SUBSCRIPTION_MASK_SINK_INPUT |
 				PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT |
 				PA_SUBSCRIPTION_MASK_MODULE)
-			, callback);
+			, eventCallback);
 	canRun = true;
 	while (canRun) {
 		fakeLib.iterate_subscribtion_loop();
@@ -30,9 +34,6 @@ void SubscribeAndListenThread::run() {
 	fakeLib.clean_subscribtion_loop();
 }
 
-void SubscribeAndListenThread::eventCallback(pa_subscription_event_type_t event) {
-	emit newEvent(event);
-}
 
 void SubscribeAndListenThread::stop() {
 	canRun = false;

@@ -64,8 +64,8 @@ bool FakeLibQmlInterface::updateSinksList()
         if (sink_list[ctr].name == fakeCombinedSinkName)
             continue;
 		auto new_sink = new Sink(
-			sink_list[ctr].name.c_str(),
-			sink_list[ctr].description.c_str(),
+			sink_list[ctr].name,
+			sink_list[ctr].description,
 			sink_list[ctr].index
 		);
 		m_sinks.append(new_sink);
@@ -109,12 +109,12 @@ bool FakeLibQmlInterface::updateSourcesList()
                 break;
         }
 		// Source Is a monitor (name ends with .monitor)
-		if (auto& name = source_list[ctr].name; name.rfind(".monitor") == name.size()-8) {
+		if (auto name = std::string(source_list[ctr].name); name.rfind(".monitor") == name.size()-8) {
 			continue;
 		}
 		auto new_source = new Source(
-			source_list[ctr].name.c_str(),
-			source_list[ctr].description.c_str(),
+			source_list[ctr].name,
+			source_list[ctr].description,
 			source_list[ctr].index
 		);
 		m_sources.append(new_source);
@@ -158,9 +158,9 @@ bool FakeLibQmlInterface::updateSourceOutputsList()
                 break;
         }
 		auto new_sourceOutput = new SourceOutput (
-			source_output_list[ctr].name.c_str(),
+			source_output_list[ctr].name,
 			source_output_list[ctr].source,
-			source_output_list[ctr].process_binary.c_str(),
+			source_output_list[ctr].process_binary,
 			source_output_list[ctr].index
 		);
 		m_sourceOutputs.append(new_sourceOutput);
@@ -205,9 +205,9 @@ bool FakeLibQmlInterface::updateSinkInputsList()
                 break;
         }
 		auto new_sinkInput = new SinkInput (
-			sink_input_list[ctr].name.c_str(),
+			sink_input_list[ctr].name,
 			sink_input_list[ctr].sink,
-			sink_input_list[ctr].process_binary.c_str(),
+			sink_input_list[ctr].process_binary,
 			sink_input_list[ctr].index
 		);
 		m_sinkInputs.append(new_sinkInput);
@@ -333,6 +333,7 @@ void FakeLibQmlInterface::makePulseaudioSubscribeThread()
         pulseaudioSubscribeThread->deleteLater();
     }
     pulseaudioSubscribeThread = new SubscribeAndListenThread(this);
+	SubscribeAndListenThread::singleton = pulseaudioSubscribeThread;
 }
 
 QQmlObjectListModel<Sink> *FakeLibQmlInterface::sinks() {

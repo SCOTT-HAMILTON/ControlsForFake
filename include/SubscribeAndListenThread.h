@@ -10,12 +10,12 @@ class SubscribeAndListenThread : public QThread
 	Q_OBJECT 
 public:
     explicit SubscribeAndListenThread(QObject* parent = nullptr);
+	static SubscribeAndListenThread* singleton;
 
 protected:
     void run() override;
 
 public slots:
-	void eventCallback(pa_subscription_event_type_t event);
     void stop();
 
 signals:
@@ -25,8 +25,6 @@ signals:
 private:
     std::atomic_bool canRun;
 	static FakeLib fakeLib;
-	std::function<void(pa_subscription_event_type_t event)> callback;
-
 };
 
 #endif //SUBSRIBE_AND_LISTEN_THREAD_H
