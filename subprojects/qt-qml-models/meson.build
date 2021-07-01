@@ -16,11 +16,11 @@ sources = [
 		  'QQmlObjectListModel.cpp' ,
 		  'QQmlVariantListModel.cpp',
 		  ]
-lib = shared_library('QQmlObjectListModel', sources, 
+
+lib = static_library('QQmlObjectListModel', sources,
   moc_files,
   include_directories : inc,
-  dependencies : [qt5_dep], 
-  install : true)
+  dependencies : [qt5_dep])
 
 lib_dep = declare_dependency(
   link_with: lib,

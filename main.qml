@@ -377,7 +377,7 @@ Window {
 		]
 		Connections {
 			target: fakelibQmlInterface
-			onRunningChanged: {
+			function onRunningChanged() {
 				console.log("running changed to "+fakelibQmlInterface.running)
 			}
 		}

@@ -28,11 +28,11 @@ int main(int argc, char *argv[])
     qmlRegisterType<SinkInput>("org.controlfake.sinkInput", 1, 0, "SinkInput");
 	registerQtQmlTricksSmartDataModel(&engine);
 
-    FakeLibQmlInterface fakelibQmlInterface;
-	fakelibQmlInterface.updateModels();
-	fakelibQmlInterface.startPulseAudioSubscribtionListener();
-    engine.rootContext()->setContextProperty("fakelibQmlInterface", &fakelibQmlInterface);
-	QQmlEngine::setObjectOwnership(&fakelibQmlInterface, QQmlEngine::CppOwnership);
+    auto fakelibQmlInterface = new FakeLibQmlInterface(&engine);
+	fakelibQmlInterface->updateModels();
+	fakelibQmlInterface->startPulseAudioSubscribtionListener();
+    engine.rootContext()->setContextProperty("fakelibQmlInterface", fakelibQmlInterface);
+	QQmlEngine::setObjectOwnership(fakelibQmlInterface, QQmlEngine::CppOwnership);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -42,13 +42,13 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
     engine.load(url);
 
-	QObject::connect(&fakelibQmlInterface, SIGNAL(sinksChanged()),
+	QObject::connect(fakelibQmlInterface, SIGNAL(sinksChanged()),
 			engine.rootObjects()[0], SLOT(onSinksChanged()));
-	QObject::connect(&fakelibQmlInterface, SIGNAL(sourcesChanged()),
+	QObject::connect(fakelibQmlInterface, SIGNAL(sourcesChanged()),
 			engine.rootObjects()[0], SLOT(onSourcesChanged()));
-	QObject::connect(&fakelibQmlInterface, SIGNAL(sourceOutputsChanged()),
+	QObject::connect(fakelibQmlInterface, SIGNAL(sourceOutputsChanged()),
 			engine.rootObjects()[0], SLOT(onSourceOutputsChanged()));
-	QObject::connect(&fakelibQmlInterface, SIGNAL(sinkInputsChanged()),
+	QObject::connect(fakelibQmlInterface, SIGNAL(sinkInputsChanged()),
 			engine.rootObjects()[0], SLOT(onSinkInputsChanged()));
 
     return app.exec();

@@ -1,7 +1,7 @@
 #include "fakeplayerthread.h"
 
 #include <QDebug>
-#include <FakeMicWavPlayerLib.h>
+#include <FakeMicWavPlayer/FakeMicWavPlayerLib.h>
 
 FakePlayerThread::FakePlayerThread(QObject* parent) :
 	QThread(parent), canRun(true)

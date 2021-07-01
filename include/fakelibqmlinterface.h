@@ -8,7 +8,7 @@
 #include "fakeplayerthread.h"
 #include "SubscribeAndListenThread.h"
 
-#include <FakeLib.h>
+#include <FakeLib/FakeLib.h>
 #include <pulse/subscribe.h>
 #include <QQmlObjectListModel.h>
 

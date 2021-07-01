@@ -52,6 +52,11 @@ executable('ControlsForFake',
 		dependencies: dependencies,
 		)
 
+conf_data = configuration_data()
+conf_data.set('bindir', get_option('prefix')+'/'+get_option('bindir'))
+desktop_file = configure_file(input : 'desktop/controls-for-fake.desktop.in',
+						      output : 'controls-for-fake.desktop',
+				              configuration : conf_data)
 
 install_data('icons/16-app-icon.png',
 	      install_dir: 'share/icons/hicolor/16x16/apps',
@@ -69,6 +74,6 @@ install_data('icons/app-icon.svgz',
 	      install_dir: 'share/icons/hicolor/scalable/apps',
 	      rename: 'controlsforfake.svgz')
 
-install_data('controls-for-fake.desktop',
+install_data(desktop_file,
 	      install_dir: 'share/applications',
 	      install_mode: 'r-xr-xr-x')

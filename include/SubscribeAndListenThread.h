@@ -3,7 +3,7 @@
 
 #include <QThread>
 #include <pulse/subscribe.h>
-#include <FakeLib.h>
+#include <FakeLib/FakeLib.h>
 
 class SubscribeAndListenThread : public QThread
 { 

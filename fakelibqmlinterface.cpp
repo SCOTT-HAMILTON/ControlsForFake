@@ -3,8 +3,8 @@
 #include <QDebug>
 #include <iterator>
 #include <QQmlEngine>
-#include <FakeLibUtils.hpp>
-#include <FakeMicWavPlayerLib.h>
+#include <FakeLib/FakeLibUtils.hpp>
+#include <FakeMicWavPlayer/FakeMicWavPlayerLib.h>
 
 FakeLib FakeLibQmlInterface::fakeLib;
 
